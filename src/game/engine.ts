@@ -1980,91 +1980,360 @@ export class GameEngine {
   }
 
   private drawChests(ctx: CanvasRenderingContext2D) {
-    const rarityConfig: Record<ItemRarity, { main: string; light: string; glow: string; border: string; particleColor: string; beamAlpha: number }> = {
-      common: { main: '#71717a', light: '#a1a1aa', glow: 'rgba(161, 161, 170, 0.45)', border: '#3f3f46', particleColor: '#e4e4e7', beamAlpha: 0.15 },
-      good: { main: '#16a34a', light: '#4ade80', glow: 'rgba(74, 222, 128, 0.55)', border: '#15803d', particleColor: '#86efac', beamAlpha: 0.25 },
-      superior: { main: '#0284c7', light: '#38bdf8', glow: 'rgba(56, 189, 248, 0.65)', border: '#0369a1', particleColor: '#7dd3fc', beamAlpha: 0.35 },
-      perfect: { main: '#9333ea', light: '#c084fc', glow: 'rgba(192, 132, 252, 0.75)', border: '#7e22ce', particleColor: '#e9d5ff', beamAlpha: 0.45 },
-      epic: { main: '#d97706', light: '#fbbf24', glow: 'rgba(251, 191, 36, 0.85)', border: '#b45309', particleColor: '#fde68a', beamAlpha: 0.55 },
-      brilliant: { main: '#e11d48', light: '#fb7185', glow: 'rgba(244, 63, 94, 0.95)', border: '#be123c', particleColor: '#fda4af', beamAlpha: 0.7 },
+    const rarityConfig: Record<
+      ItemRarity,
+      {
+        name: string;
+        bodyDark: string;
+        bodyLight: string;
+        lidDark: string;
+        lidLight: string;
+        strap: string;
+        strapHighlight: string;
+        gemCore: string;
+        gemGlow: string;
+        border: string;
+        particleColor: string;
+        beamColor: string;
+        beamAlpha: number;
+        icon: string;
+      }
+    > = {
+      common: {
+        name: 'GỖ THÔ',
+        bodyDark: '#452b14',
+        bodyLight: '#784620',
+        lidDark: '#5c3517',
+        lidLight: '#965b2d',
+        strap: '#92400e',
+        strapHighlight: '#d97706',
+        gemCore: '#fbbf24',
+        gemGlow: 'rgba(251, 191, 36, 0.45)',
+        border: '#b45309',
+        particleColor: '#fde68a',
+        beamColor: '251, 191, 36',
+        beamAlpha: 0.25,
+        icon: '📦',
+      },
+      good: {
+        name: 'LỤC BẢO',
+        bodyDark: '#064e3b',
+        bodyLight: '#059669',
+        lidDark: '#047857',
+        lidLight: '#10b981',
+        strap: '#cbd5e1',
+        strapHighlight: '#f8fafc',
+        gemCore: '#34d399',
+        gemGlow: 'rgba(52, 211, 153, 0.65)',
+        border: '#10b981',
+        particleColor: '#6ee7b7',
+        beamColor: '52, 211, 153',
+        beamAlpha: 0.35,
+        icon: '💎',
+      },
+      superior: {
+        name: 'LAM NGỌC',
+        bodyDark: '#0c4a6e',
+        bodyLight: '#0284c7',
+        lidDark: '#0369a1',
+        lidLight: '#38bdf8',
+        strap: '#e2e8f0',
+        strapHighlight: '#ffffff',
+        gemCore: '#00f2ff',
+        gemGlow: 'rgba(0, 242, 255, 0.75)',
+        border: '#00f2ff',
+        particleColor: '#7dd3fc',
+        beamColor: '0, 242, 255',
+        beamAlpha: 0.45,
+        icon: '⚡',
+      },
+      perfect: {
+        name: 'TÍM KHÔNG GIAN',
+        bodyDark: '#3b0764',
+        bodyLight: '#7e22ce',
+        lidDark: '#6b21a8',
+        lidLight: '#c084fc',
+        strap: '#fbbf24',
+        strapHighlight: '#fef08a',
+        gemCore: '#f472b6',
+        gemGlow: 'rgba(244, 114, 182, 0.85)',
+        border: '#c084fc',
+        particleColor: '#f5d0fe',
+        beamColor: '192, 132, 252',
+        beamAlpha: 0.55,
+        icon: '🔮',
+      },
+      epic: {
+        name: 'HOÀNG KIM SỬ THI',
+        bodyDark: '#78350f',
+        bodyLight: '#d97706',
+        lidDark: '#b45309',
+        lidLight: '#f59e0b',
+        strap: '#fef08a',
+        strapHighlight: '#ffffff',
+        gemCore: '#fbbf24',
+        gemGlow: 'rgba(251, 191, 36, 0.95)',
+        border: '#fde047',
+        particleColor: '#fef9c3',
+        beamColor: '251, 191, 36',
+        beamAlpha: 0.7,
+        icon: '👑',
+      },
+      brilliant: {
+        name: 'HUYẾT TINH RỰC RỠ',
+        bodyDark: '#881337',
+        bodyLight: '#e11d48',
+        lidDark: '#be123c',
+        lidLight: '#fb7185',
+        strap: '#fef08a',
+        strapHighlight: '#ffffff',
+        gemCore: '#ffffff',
+        gemGlow: 'rgba(255, 255, 255, 0.98)',
+        border: '#fb7185',
+        particleColor: '#fecdd3',
+        beamColor: '244, 63, 94',
+        beamAlpha: 0.85,
+        icon: '🌟',
+      },
     };
 
     const time = performance.now() / 1000;
 
     for (const chest of this.chests) {
       const chestWorldY = -chest.x;
-      if (Math.abs(chestWorldY - this.cameraY) > this.height + 80) continue;
+      if (Math.abs(chestWorldY - this.cameraY) > this.height + 120) continue;
 
       ctx.save();
-      const bobY = !chest.isOpened ? Math.sin(time * 3 + chest.x) * 3 : 0;
+      const bobY = !chest.isOpened ? Math.sin(time * 3 + chest.x * 0.05) * 3.5 : 0;
       ctx.translate(chest.laneOffset, chestWorldY + bobY);
 
       const color = rarityConfig[chest.rarity] || rarityConfig.common;
 
       if (!chest.isOpened) {
-        // 1. Holographic Vertical Sky Beacon Column
-        const beamGrad = ctx.createLinearGradient(0, 0, 0, -220);
-        beamGrad.addColorStop(0, color.glow);
-        beamGrad.addColorStop(0.7, color.glow.replace(/[\d\.]+\)$/, `${color.beamAlpha})`));
+        // ==========================================
+        // 1. CELESTIAL SKY BEACON & ORBITING RUNES
+        // ==========================================
+        // Vertical Ray Gradient Column
+        const beamGrad = ctx.createLinearGradient(0, 0, 0, -260);
+        beamGrad.addColorStop(0, `rgba(${color.beamColor}, ${color.beamAlpha * 0.9})`);
+        beamGrad.addColorStop(0.4, `rgba(${color.beamColor}, ${color.beamAlpha * 0.5})`);
+        beamGrad.addColorStop(0.8, `rgba(${color.beamColor}, ${color.beamAlpha * 0.15})`);
         beamGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
         ctx.fillStyle = beamGrad;
-        ctx.fillRect(-12, -220, 24, 220);
+        ctx.fillRect(-16, -260, 32, 260);
 
-        // 2. Pulsating Planetary Glow Aura
-        ctx.fillStyle = color.glow;
+        // Core Dense Energy Pillar
+        const coreGrad = ctx.createLinearGradient(0, 0, 0, -180);
+        coreGrad.addColorStop(0, `rgba(255, 255, 255, ${color.beamAlpha * 0.8})`);
+        coreGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = coreGrad;
+        ctx.fillRect(-4, -180, 8, 180);
+
+        // Pulsating Planetary Glow Aura
+        const pulse = Math.sin(time * 4 + chest.x) * 4;
+        const glowGrad = ctx.createRadialGradient(0, 0, 4, 0, 0, 36 + pulse);
+        glowGrad.addColorStop(0, color.gemGlow);
+        glowGrad.addColorStop(0.6, `rgba(${color.beamColor}, 0.25)`);
+        glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = glowGrad;
         ctx.beginPath();
-        ctx.arc(0, 0, 28 + Math.sin(time * 4) * 3, 0, Math.PI * 2);
+        ctx.arc(0, 0, 36 + pulse, 0, Math.PI * 2);
         ctx.fill();
 
-        // 3. Orbiting Sparkle Dust
-        const orbitAngle = time * 2.8 + chest.x;
-        ctx.fillStyle = color.particleColor;
-        const sparkX1 = Math.cos(orbitAngle) * 24;
-        const sparkY1 = Math.sin(orbitAngle) * 14;
-        ctx.fillRect(sparkX1 - 2, sparkY1 - 2, 4, 4);
+        // Dual Orbiting Celestial Sparkle Rings
+        for (let i = 0; i < 4; i++) {
+          const orbitAngle = time * 2.4 + (i * Math.PI) / 2 + chest.x * 0.02;
+          const orbitRadiusX = 26 + Math.sin(time * 2 + i) * 3;
+          const orbitRadiusY = 12 + Math.cos(time * 2 + i) * 2;
+          const sparkX = Math.cos(orbitAngle) * orbitRadiusX;
+          const sparkY = Math.sin(orbitAngle) * orbitRadiusY;
 
-        const sparkX2 = Math.cos(orbitAngle + Math.PI) * 24;
-        const sparkY2 = Math.sin(orbitAngle + Math.PI) * 14;
-        ctx.fillRect(sparkX2 - 2, sparkY2 - 2, 4, 4);
+          ctx.fillStyle = color.particleColor;
+          ctx.beginPath();
+          ctx.arc(sparkX, sparkY, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Spark Trail Flare
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(sparkX - 1, sparkY - 1, 2, 2);
+        }
       }
 
-      // Ground Shadow
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      // ==========================================
+      // 2. REALISTIC DUAL-LAYER GROUND DROP SHADOW
+      // ==========================================
+      const shadowGrad = ctx.createRadialGradient(0, 14 - bobY, 4, 0, 14 - bobY, 24);
+      shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0.7)');
+      shadowGrad.addColorStop(0.6, 'rgba(0, 0, 0, 0.35)');
+      shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = shadowGrad;
       ctx.beginPath();
-      ctx.ellipse(0, 12 - bobY, 18, 7, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 14 - bobY, 24, 9, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Chest Main Body
-      ctx.fillStyle = chest.isOpened ? '#3f3f46' : color.main;
-      ctx.fillRect(-16, -11, 32, 22);
+      // ==========================================
+      // 3. 3D PROCEDURAL CHEST BODY & TEXTURE
+      // ==========================================
+      const w = 36;
+      const h = 24;
+      const halfW = w / 2;
 
-      // Chest Lid with Specular Edge
-      ctx.fillStyle = chest.isOpened ? '#52525b' : color.light;
-      ctx.fillRect(-16, -11, 32, 7);
+      if (!chest.isOpened) {
+        // --- CLOSED CHEST STATE ---
+        // Main Box Shaded Gradient Body
+        const bodyGrad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+        bodyGrad.addColorStop(0, color.bodyLight);
+        bodyGrad.addColorStop(1, color.bodyDark);
+        ctx.fillStyle = bodyGrad;
+        ctx.beginPath();
+        ctx.roundRect(-halfW, -h / 2, w, h, 3);
+        ctx.fill();
 
-      // Metallic Reinforced Corner Straps
-      ctx.fillStyle = '#fbbf24';
-      ctx.fillRect(-16, -11, 5, 5);
-      ctx.fillRect(11, -11, 5, 5);
-      ctx.fillRect(-16, 6, 5, 5);
-      ctx.fillRect(11, 6, 5, 5);
+        // Vertical Texture Slats (Wood Planks or Metal Paneling)
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-halfW + 12, -h / 2);
+        ctx.lineTo(-halfW + 12, h / 2);
+        ctx.moveTo(halfW - 12, -h / 2);
+        ctx.lineTo(halfW - 12, h / 2);
+        ctx.stroke();
 
-      // Sci-Fi Glowing Energy Core / Keyhole Latch
-      ctx.fillStyle = chest.isOpened ? '#18181b' : '#00f2ff';
-      ctx.fillRect(-4, -6, 8, 12);
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(-1.5, -2, 3, 5);
+        // 3D Arced Dome Chest Lid with Top Highlight
+        const lidGrad = ctx.createLinearGradient(0, -h / 2 - 8, 0, -h / 2 + 3);
+        lidGrad.addColorStop(0, color.lidLight);
+        lidGrad.addColorStop(1, color.lidDark);
+        ctx.fillStyle = lidGrad;
+        ctx.beginPath();
+        ctx.roundRect(-halfW - 2, -h / 2 - 6, w + 4, 10, [5, 5, 2, 2]);
+        ctx.fill();
 
-      ctx.strokeStyle = color.border;
-      ctx.lineWidth = 1.8;
-      ctx.strokeRect(-16, -11, 32, 22);
+        // Specular Glossy Lip
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillRect(-halfW, -h / 2 - 5, w, 2);
 
-      // Chest Rarity & Interaction Tag
-      ctx.fillStyle = '#ffffff';
+        // Metallic Reinforced Corner Straps & Straps
+        ctx.fillStyle = color.strap;
+        // Left & Right Edge Straps
+        ctx.fillRect(-halfW, -h / 2 - 6, 6, h + 6);
+        ctx.fillRect(halfW - 6, -h / 2 - 6, 6, h + 6);
+        // Center Band
+        ctx.fillRect(-4, -h / 2 - 6, 8, h + 6);
+
+        // Metallic Rivet Studs
+        ctx.fillStyle = color.strapHighlight;
+        const rivetPoints = [
+          [-halfW + 3, -h / 2 - 3],
+          [-halfW + 3, h / 2 - 3],
+          [halfW - 3, -h / 2 - 3],
+          [halfW - 3, h / 2 - 3],
+          [0, -h / 2 - 3],
+          [0, h / 2 - 3],
+        ];
+        for (const [rx, ry] of rivetPoints) {
+          ctx.beginPath();
+          ctx.arc(rx, ry, 1.3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Central Faceted Glowing Energy Lock Gem
+        const lockGlow = Math.sin(time * 5 + chest.x) * 0.2 + 0.8;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-6, -4, 12, 12);
+        ctx.strokeStyle = color.strapHighlight;
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(-6, -4, 12, 12);
+
+        // Faceted Gem Core
+        ctx.fillStyle = color.gemCore;
+        ctx.beginPath();
+        ctx.arc(0, 2, 3.5 * lockGlow, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Gem White Sparkle Glint
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-1, 1, 2, 2);
+
+        // Outer Metallic Bevel Stroke
+        ctx.strokeStyle = color.border;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(-halfW, -h / 2, w, h);
+      } else {
+        // --- OPENED CHEST STATE ---
+        // Empty Inner Cavity with Dark Void & Golden Residual Glow
+        ctx.fillStyle = '#18181b';
+        ctx.fillRect(-halfW, -h / 2, w, h);
+
+        // Inner Bottom Depth
+        ctx.fillStyle = '#09090b';
+        ctx.fillRect(-halfW + 3, -h / 2 + 3, w - 6, h - 6);
+
+        // Residual Light Burst from Open Chest
+        const openGlow = ctx.createLinearGradient(0, h / 2, 0, -25);
+        openGlow.addColorStop(0, 'rgba(251, 191, 36, 0.4)');
+        openGlow.addColorStop(1, 'rgba(251, 191, 36, 0)');
+        ctx.fillStyle = openGlow;
+        ctx.fillRect(-halfW + 2, -25, w - 4, h + 25);
+
+        // Open Lid Tilted Backwards (3D Isometric Perspective)
+        ctx.fillStyle = color.lidDark;
+        ctx.beginPath();
+        ctx.moveTo(-halfW - 3, -h / 2);
+        ctx.lineTo(-halfW + 2, -h / 2 - 14);
+        ctx.lineTo(halfW - 2, -h / 2 - 14);
+        ctx.lineTo(halfW + 3, -h / 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = color.strap;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Rising Dispersing Sparkles
+        for (let i = 0; i < 3; i++) {
+          const sparkY = ((time * 30 + i * 20) % 35);
+          const sparkX = Math.sin(time * 3 + i) * 12;
+          ctx.fillStyle = `rgba(253, 230, 138, ${1 - sparkY / 35})`;
+          ctx.fillRect(sparkX - 1.5, -h / 2 - sparkY, 3, 3);
+        }
+
+        // Rim Border
+        ctx.strokeStyle = '#52525b';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(-halfW, -h / 2, w, h);
+      }
+
+      // ==========================================
+      // 4. CRISP HIGH-TECH HOLOGRAPHIC RARITY BADGE
+      // ==========================================
       ctx.font = 'bold 9px monospace';
       ctx.textAlign = 'center';
-      const label = chest.isOpened ? '📦 ĐÃ MỞ' : `✨ [E] RƯƠNG ${chest.rarity.toUpperCase()}`;
-      ctx.fillText(label, 0, -20);
+
+      if (!chest.isOpened) {
+        // Holographic Badge Frame
+        const tagText = `[E] ${color.icon} RƯƠNG ${color.name}`;
+        const textWidth = ctx.measureText(tagText).width;
+        
+        ctx.fillStyle = 'rgba(10, 10, 15, 0.85)';
+        ctx.beginPath();
+        ctx.roundRect(-textWidth / 2 - 7, -29, textWidth + 14, 15, 4);
+        ctx.fill();
+        ctx.strokeStyle = color.border;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = color.gemCore;
+        ctx.shadowBlur = 6;
+        ctx.fillText(tagText, 0, -18);
+        ctx.shadowBlur = 0;
+      } else {
+        ctx.fillStyle = 'rgba(24, 24, 27, 0.75)';
+        ctx.beginPath();
+        ctx.roundRect(-24, -25, 48, 13, 3);
+        ctx.fill();
+        ctx.fillStyle = '#a1a1aa';
+        ctx.fillText('📦 ĐÃ MỞ', 0, -15);
+      }
 
       ctx.restore();
     }

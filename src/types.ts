@@ -378,12 +378,31 @@ export interface RoadblockEntity {
   hasGun: boolean;
 }
 
+export interface QuestDialogue {
+  speaker: string;
+  avatar: string;
+  text: string;
+  role?: 'player' | 'system' | 'companion' | 'villain' | 'npc';
+}
+
 export interface Quest {
   id: string;
   title: string;
   type: 'main' | 'daily' | 'hidden';
   chapter?: number;
+  chapterName?: string;
   description: string;
+  storyLore?: string;
+  storyDialogue?: QuestDialogue[];
+  systemBroadcast?: string;
+  npcPrivateChatTrigger?: {
+    npcId: string;
+    npcName: string;
+    avatar: string;
+    message: string;
+    autoReplyOptions?: string[];
+  };
+  marketListingTrigger?: MarketListing;
   targetCount: number;
   currentCount: number;
   completed: boolean;

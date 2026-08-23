@@ -24,6 +24,7 @@ import { soundEngine } from '../audio/soundEngine';
 interface GeminiCompanionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialPrompt?: string;
   gameStats?: {
     distance: number;
     hp: number;
@@ -32,12 +33,15 @@ interface GeminiCompanionModalProps {
     stageName: string;
     courageBadges: number;
     talentCount: number;
+    currentChapter?: number;
+    activeQuestTitle?: string;
   };
 }
 
 export const GeminiCompanionModal: React.FC<GeminiCompanionModalProps> = ({
   isOpen,
   onClose,
+  initialPrompt,
   gameStats,
 }) => {
   const [selectedPersona, setSelectedPersona] = useState<string>('tuyet_moc');
@@ -49,10 +53,11 @@ export const GeminiCompanionModal: React.FC<GeminiCompanionModalProps> = ({
       id: 'init-1',
       role: 'assistant',
       content: `👋 Chào bạn! Tôi là **Tuyết Mộc**, người sở hữu thiên phú **10 Phát Nhập Hồn** trên Xa Lộ Sinh Tồn.
-Tôi có thể tư vấn bạn về:
-- 🔨 **Chiến lược rèn 10 phát nhập hồn** tối ưu phẩm chất.
-- 🚗 **Nâng cấp và quản lý điều hòa / bồn nước xe RV**.
-- 🌡️ **Chống sốc nhiệt khi vượt Sa Mạc Rực Lửa**.
+Tôi có thể tư vấn bạn xuyên suốt **4 Giai Đoạn Cốt Truyện**:
+- 🔨 **Chương 1 (KM 0-20):** Bàn rèn thần kỳ & cơn sốt giấy vệ sinh đổi nước.
+- 🌡️ **Chương 2 (KM 20-50):** Chống sốc nhiệt 65°C, máy ngưng tụ nước nóc xe & băng muối.
+- 🤠 **Chương 3 (KM 50-100):** Đúc súng Desert Eagle, dẹp tan băng cướp đường Phi Ca.
+- 🏰 **Chương 4 (KM 100+):** Lên đời Xe Nhà RV Sang Trọng & Thần Khuyển Hoàng Kim.
 
 Bạn muốn hỏi về điều gì hôm nay?`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -69,8 +74,11 @@ Bạn muốn hỏi về điều gì hôm nay?`,
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
+      if (initialPrompt && initialPrompt.trim()) {
+        handleSendMessage(initialPrompt.trim());
+      }
     }
-  }, [messages, isOpen]);
+  }, [isOpen, initialPrompt]);
 
   if (!isOpen) return null;
 
@@ -111,24 +119,25 @@ Bạn muốn hỏi về điều gì hôm nay?`,
 
   const suggestedQuestions: Record<string, string[]> = {
     tuyet_moc: [
-      'Làm thế nào để kích hoạt 10 phát nhập hồn hiệu quả nhất?',
-      'Tôi nên nâng cấp bộ phận nào của xe RV trước?',
-      'Cách rèn Đao Đường Cắt Gió phẩm chất Rực Rỡ?',
+      'Chương 1: Làm sao để kích hoạt 10 phát nhập hồn rèn vũ khí bạo kích?',
+      'Chương 2: Cách chế tạo máy ngưng tụ nước và điều hòa Inverter?',
+      'Chương 3: Công thức đúc súng Desert Eagle và Đạn xuyên giáp AP?',
+      'Chương 4: Làm thế nào để lên đời Xe Nhà RV Sang Trọng và Nhẫn Không Gian?',
     ],
     bac_si: [
-      'Thân nhiệt của tôi tăng cao trên 39°C thì phải làm gì?',
+      'Chương 2: Thân nhiệt ngoài trời 65°C vượt 39°C thì phải làm gì khẩn cấp?',
+      'Cách làm Băng Muối và Kem Bơ Tuyết để giải nhiệt và hồi sinh lực?',
       'Cách chữa trúng độc khi bị Bò Cạp Sa Mạc cắn?',
-      'Làm sao để nấu nước mát và làm kem trong xe RV?',
     ],
     tho_san: [
-      'Chiến thuật đối đầu Sói Đột Biến vào ban đêm?',
-      'Nên dùng Súng Săn hay Đao Cận Chiến khi dã thú áp sát?',
-      'Cách tăng sát thương bạo kích lên quái vật?',
+      'Chương 3: Chiến thuật đấu súng tiêu diệt Băng Cướp Phi Ca ở Trạm Dịch?',
+      'Cách phối hợp tác chiến cùng Thần Khuyển Hoàng Kim khi đi săn?',
+      'Chiến thuật giữ khoảng cách và bắn hạ quái vật biến dị ban đêm?',
     ],
     tham_hiem: [
-      'Trạm Tiếp Tế Xa Lộ bán những mặt hàng gì quý giá?',
-      'Làm sao để kiếm được nhiều Huy Hiệu Dũng Khí?',
-      'Vùng Sa Mạc KM 10 có những cạm bẫy nào?',
+      'Trạm Tiếp Tế Sa Mạc KM 80 bán những vật phẩm quý hiếm nào?',
+      'Làm sao để kiếm được nhiều Kim Cương và Huy Hiệu Dũng Khí?',
+      'Cách trao đổi vật tư có lợi nhất trên Chợ Giao Dịch Thế Giới?',
     ],
   };
 

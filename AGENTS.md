@@ -1,6 +1,6 @@
-# Ký Túc Xá Sinh Tồn RPG - Project Agent Guide & Rules
+# Highway Survival RPG - Project Agent Guide & Rules
 
-Chào mừng bạn đến với dự án Game **Ký Túc Xá Sinh Tồn RPG** (Isekai Survival RPG). 
+Chào mừng bạn đến với dự án Game **Highway Survival RPG** (Sinh Tồn Trên Cao Tốc). 
 Tệp tài liệu này định hướng toàn bộ quy chuẩn phát triển, quy trình làm việc và hệ thống kỹ năng của dự án.
 
 ---

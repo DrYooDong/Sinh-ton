@@ -234,8 +234,8 @@ export default function App() {
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
   const [isGrowthOpen, setIsGrowthOpen] = useState(false);
   const [isSaveOpen, setIsSaveOpen] = useState(false);
-  const [isTutorialOpen, setIsTutorialOpen] = useState(() => !localStorage.getItem('highway_tutorial_seen'));
   const [isGeminiAIOpen, setIsGeminiAIOpen] = useState(false);
+  const [aiCompanionPrompt, setAiCompanionPrompt] = useState<string | undefined>(undefined);
   const [isKeybindingsOpen, setIsKeybindingsOpen] = useState(false);
   const [activeStation, setActiveStation] = useState<SupplyStationEntity | null>(null);
   const [activeEncounter, setActiveEncounter] = useState<RandomEncounter | null>(null);
@@ -1720,6 +1720,15 @@ export default function App() {
         onClose={() => setIsQuestsOpen(false)}
         quests={quests}
         achievements={achievements}
+        onAskAI={(prompt) => {
+          setAiCompanionPrompt(prompt);
+          setIsQuestsOpen(false);
+          setIsGeminiAIOpen(true);
+        }}
+        onOpenTradeMarket={() => {
+          setIsQuestsOpen(false);
+          setIsChatOpen(true);
+        }}
         onClaimQuestReward={(qId) => {
           const q = quests.find((item) => item.id === qId);
           if (!q || !q.completed) return;
@@ -1734,9 +1743,14 @@ export default function App() {
             courageBadges: p.courageBadges + rewardBadges,
           }));
 
-          // Add items to inventory & unlock blueprints if reward is a blueprint
+          // Unlock blueprint if reward specifies blueprintId
+          if (q.rewards.blueprintId) {
+            handleLearnBlueprint(q.rewards.blueprintId);
+          }
+
+          // Add items to inventory & diamonds
           setInventory((inv) => {
-            const next = [...inv];
+            let next = [...inv];
             const rewardItems = q.rewards.items || [];
             for (const r of rewardItems) {
               if (r.itemId.startsWith('blueprint_') || r.itemId.startsWith('bp_')) {
@@ -1758,8 +1772,76 @@ export default function App() {
                 });
               }
             }
+
+            // Diamonds reward
+            if (q.rewards.diamonds && q.rewards.diamonds > 0) {
+              const diaIdx = next.findIndex((i) => i.id === 'diamond');
+              if (diaIdx >= 0) {
+                next[diaIdx] = { ...next[diaIdx], quantity: next[diaIdx].quantity + q.rewards.diamonds };
+              } else {
+                next.push({
+                  id: 'diamond',
+                  name: 'Kim cương',
+                  category: 'material',
+                  rarity: 'perfect',
+                  quantity: q.rewards.diamonds,
+                  description: 'Đá quý tối thượng dùng rèn vũ khí cao cấp.',
+                  icon: '💎',
+                });
+              }
+            }
+
             return next;
           });
+
+          const timeStampStr = `${Math.floor((gameTimeMinutes % 1440) / 60)
+            .toString()
+            .padStart(2, '0')}:${(gameTimeMinutes % 60).toString().padStart(2, '0')}`;
+
+          // Story Trigger: System World Broadcast
+          if (q.systemBroadcast) {
+            setChatHistory((prev) => [
+              ...prev,
+              {
+                id: `sys_story_${Date.now()}`,
+                sender: 'HỆ THỐNG XA LỘ',
+                avatar: '🤖',
+                isNpc: false,
+                isPlayer: false,
+                isSystem: true,
+                content: q.systemBroadcast!,
+                timestamp: timeStampStr,
+                channel: 'world',
+              },
+            ]);
+          }
+
+          // Story Trigger: NPC Private Message
+          if (q.npcPrivateChatTrigger) {
+            setChatHistory((prev) => [
+              ...prev,
+              {
+                id: `npc_pm_${Date.now()}`,
+                sender: q.npcPrivateChatTrigger!.npcName,
+                avatar: q.npcPrivateChatTrigger!.avatar,
+                isNpc: true,
+                isPlayer: false,
+                isSystem: false,
+                content: q.npcPrivateChatTrigger!.message,
+                timestamp: timeStampStr,
+                channel: 'private_tinh_than',
+              },
+            ]);
+          }
+
+          // Story Trigger: Dynamic Market Listing Injection
+          if (q.marketListingTrigger) {
+            const listing = q.marketListingTrigger;
+            setMarketListings((prev) => [
+              listing,
+              ...prev.filter((m) => m.id !== listing.id),
+            ]);
+          }
         }}
         onClaimAchievementReward={(aId) => {
           const ach = achievements.find((a) => a.id === aId);
@@ -1893,7 +1975,11 @@ export default function App() {
       {/* MODAL 11: TRỢ LÝ CỐ VẤN SINH TỒN GEMINI AI */}
       <GeminiCompanionModal
         isOpen={isGeminiAIOpen}
-        onClose={() => setIsGeminiAIOpen(false)}
+        onClose={() => {
+          setIsGeminiAIOpen(false);
+          setAiCompanionPrompt(undefined);
+        }}
+        initialPrompt={aiCompanionPrompt}
         gameStats={{
           distance: vehicleStats.mileage,
           hp: playerStats.hp,
@@ -1902,6 +1988,8 @@ export default function App() {
           stageName: currentStage.name,
           courageBadges: playerStats.courageBadges,
           talentCount: playerStats.talentCount,
+          currentChapter: quests.find((q) => q.type === 'main' && !q.completed)?.chapter || 1,
+          activeQuestTitle: quests.find((q) => q.type === 'main' && !q.completed)?.title,
         }}
       />
 
@@ -1937,46 +2025,79 @@ export default function App() {
 
       {/* REWARD / LOOT POPUP DIALOG */}
       {lootModalData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in zoom-in duration-200 font-mono">
-          <div className="bg-[#0e0e14] border-2 border-[#ffcc00] rounded-2xl p-5 max-w-md w-full shadow-[0_0_50px_rgba(255,204,0,0.25)] text-center space-y-4">
-            <div className="flex items-center justify-center gap-2.5">
-              <span className="text-3xl animate-bounce">🎁</span>
-              <div className="text-left">
-                <h3 className="text-sm font-black text-[#ffcc00] uppercase tracking-wider">{lootModalData.title}</h3>
-                <p className="text-[10px] text-gray-400">Đã tự động cất vào Nhẫn Trữ Vật • Sắp xếp theo độ hiếm</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in zoom-in duration-200 font-mono">
+          <div className="bg-[#09090e] border-2 border-[#ffcc00] rounded-2xl p-5 sm:p-6 max-w-lg w-full shadow-[0_0_60px_rgba(255,204,0,0.35)] text-center space-y-4 relative overflow-hidden">
+            {/* Top Holographic Flare */}
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-64 h-24 bg-gradient-to-b from-[#ffcc00]/40 to-transparent blur-xl pointer-events-none" />
+
+            {/* Modal Header */}
+            <div className="flex items-center justify-center gap-3 relative z-10">
+              <div className="w-12 h-12 rounded-xl bg-[#1a1a24] border border-[#ffcc00]/60 flex items-center justify-center text-3xl shadow-lg shadow-[#ffcc00]/20 animate-bounce">
+                🎁
+              </div>
+              <div className="text-left flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-black text-[#ffcc00] uppercase tracking-wider">
+                    {lootModalData.title}
+                  </h3>
+                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#ffcc00]/20 text-[#ffcc00] border border-[#ffcc00]/50 font-extrabold uppercase">
+                    THÀNH CÔNG
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-400">
+                  Tài nguyên đã tự động chuyển vào Nhẫn Trữ Vật Không Gian
+                </p>
               </div>
             </div>
 
-            <div className="p-3 bg-[#14141c] rounded-xl border border-[#2d2d3d] space-y-2 max-h-64 overflow-y-auto">
-              <div className="text-gray-400 font-bold uppercase tracking-wider text-[10px] text-left mb-1 flex items-center justify-between">
-                <span>VẬT PHẨM NHẬN ĐƯỢC:</span>
-                <span className="text-[#00f2ff]">{lootModalData.items.length} món</span>
+            {/* Items List Container */}
+            <div className="p-3 bg-[#0d0d14] rounded-xl border border-[#232332] space-y-2.5 max-h-80 overflow-y-auto">
+              <div className="text-gray-400 font-bold uppercase tracking-wider text-[10px] text-left px-1 flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <span>DANH SÁCH CHIẾN LỢI PHẨM</span>
+                  <span className="text-[#00f2ff]">({lootModalData.items.length} món)</span>
+                </span>
+                <span className="text-amber-400 text-[9px]">Sắp xếp: Phẩm chất cao nhất</span>
               </div>
-              
+
               {[...lootModalData.items]
                 .sort((a, b) => {
                   const weightA = RARITY_SORT_WEIGHT[a.rarity || 'common'] || 1;
                   const weightB = RARITY_SORT_WEIGHT[b.rarity || 'common'] || 1;
-                  return weightB - weightA; // Highest rarity first (Gold > Epic > Rare > Common)
+                  return weightB - weightA;
                 })
                 .map((item, idx) => {
                   const rarity = item.rarity || 'common';
-                  let borderClass = 'border-l-4 border-l-gray-400 bg-[#161622] hover:bg-[#1d1d2b] border-t border-r border-b border-[#2d2d3d]';
-                  let badgeClass = 'bg-gray-500/20 text-gray-300 border-gray-500/30';
-                  let badgeText = 'Common';
+                  let cardStyle = 'border-gray-600/50 bg-[#14141c] hover:bg-[#1a1a24] text-gray-200';
+                  let badgeStyle = 'bg-gray-700/40 text-gray-300 border-gray-500/40';
+                  let rarityLabel = 'Bình Thường';
+                  let glowColor = 'shadow-gray-500/10';
 
                   if (rarity === 'brilliant') {
-                    borderClass = 'border-l-4 border-l-amber-400 bg-[#1d170a] hover:bg-[#27200f] border-t border-r border-b border-[#4d3a12]';
-                    badgeClass = 'bg-amber-400/20 text-amber-300 border-amber-400/40';
-                    badgeText = 'Gold';
-                  } else if (rarity === 'epic' || rarity === 'perfect') {
-                    borderClass = 'border-l-4 border-l-purple-400 bg-[#171126] hover:bg-[#211836] border-t border-r border-b border-[#3b2857]';
-                    badgeClass = 'bg-purple-500/20 text-purple-300 border-purple-400/40';
-                    badgeText = 'Epic';
-                  } else if (rarity === 'superior' || rarity === 'good') {
-                    borderClass = 'border-l-4 border-l-blue-400 bg-[#0d1829] hover:bg-[#13233b] border-t border-r border-b border-[#1f344f]';
-                    badgeClass = 'bg-blue-500/20 text-blue-300 border-blue-400/40';
-                    badgeText = 'Rare';
+                    cardStyle = 'border-rose-500/80 bg-gradient-to-r from-rose-950/40 via-[#180f14] to-[#120a0e] text-rose-100 hover:border-rose-400';
+                    badgeStyle = 'bg-rose-500/20 text-rose-300 border-rose-400/60 font-black';
+                    rarityLabel = '★ RỰC RỠ EX';
+                    glowColor = 'shadow-[0_0_15px_rgba(244,63,94,0.3)]';
+                  } else if (rarity === 'epic') {
+                    cardStyle = 'border-amber-500/80 bg-gradient-to-r from-amber-950/40 via-[#18130a] to-[#120e06] text-amber-100 hover:border-amber-400';
+                    badgeStyle = 'bg-amber-500/20 text-amber-300 border-amber-400/60 font-black';
+                    rarityLabel = '★ SỬ THI';
+                    glowColor = 'shadow-[0_0_15px_rgba(245,158,11,0.3)]';
+                  } else if (rarity === 'perfect') {
+                    cardStyle = 'border-purple-500/70 bg-gradient-to-r from-purple-950/40 via-[#140e1f] to-[#0e0917] text-purple-100 hover:border-purple-400';
+                    badgeStyle = 'bg-purple-500/20 text-purple-300 border-purple-400/50 font-black';
+                    rarityLabel = '★ HOÀN HẢO';
+                    glowColor = 'shadow-[0_0_15px_rgba(192,132,252,0.25)]';
+                  } else if (rarity === 'superior') {
+                    cardStyle = 'border-sky-500/70 bg-gradient-to-r from-sky-950/40 via-[#0d1624] to-[#08101a] text-sky-100 hover:border-sky-400';
+                    badgeStyle = 'bg-sky-500/20 text-sky-300 border-sky-400/50 font-black';
+                    rarityLabel = '★ ƯU TÚ';
+                    glowColor = 'shadow-[0_0_15px_rgba(56,189,248,0.25)]';
+                  } else if (rarity === 'good') {
+                    cardStyle = 'border-emerald-500/60 bg-gradient-to-r from-emerald-950/40 via-[#0d1f17] to-[#07140e] text-emerald-100 hover:border-emerald-400';
+                    badgeStyle = 'bg-emerald-500/20 text-emerald-300 border-emerald-400/50 font-bold';
+                    rarityLabel = 'TỐT';
+                    glowColor = 'shadow-[0_0_10px_rgba(16,185,129,0.2)]';
                   }
 
                   const displayIcon =
@@ -1989,6 +2110,8 @@ export default function App() {
                       ? '🥩'
                       : item.name.toLowerCase().includes('kim loại') || item.name.toLowerCase().includes('sắt')
                       ? '🔩'
+                      : item.name.toLowerCase().includes('kim cương')
+                      ? '💎'
                       : item.name.toLowerCase().includes('bản thiết kế') || item.name.toLowerCase().includes('thiết kế')
                       ? '📜'
                       : '📦');
@@ -1996,22 +2119,30 @@ export default function App() {
                   return (
                     <div
                       key={item.id || idx}
-                      className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition ${borderClass}`}
+                      className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition duration-200 ${cardStyle} ${glowColor}`}
                     >
-                      <div className="flex items-center gap-2.5 text-left min-w-0 flex-1 pr-2">
-                        <span className="text-base shrink-0">{displayIcon}</span>
-                        <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-3 text-left min-w-0 flex-1 pr-2">
+                        <div className="w-9 h-9 rounded-lg bg-[#07070a]/80 border border-white/10 flex items-center justify-center text-xl shrink-0 shadow-inner">
+                          {displayIcon}
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-0.5">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-gray-100 truncate">{item.name}</span>
-                            <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded border shrink-0 ${badgeClass}`}>
-                              {badgeText}
+                            <span className="font-bold text-white text-xs truncate">{item.name}</span>
+                            <span className={`text-[9px] uppercase px-1.5 py-0.2 rounded border shrink-0 ${badgeStyle}`}>
+                              {rarityLabel}
                             </span>
+                          </div>
+                          <div className="text-[10px] text-gray-400 flex items-center gap-2">
+                            <span>Vật phẩm xa lộ</span>
+                            {item.name.includes('Bản Thiết Kế') && (
+                              <span className="text-purple-300 font-bold">★ Mở khóa công thức rèn</span>
+                            )}
                           </div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/30 text-xs">
+                        <span className="font-black text-[#ffcc00] bg-[#ffcc00]/15 px-2.5 py-1 rounded-lg border border-[#ffcc00]/40 text-xs shadow-sm">
                           +{item.quantity}
                         </span>
 
@@ -2021,10 +2152,10 @@ export default function App() {
                             e.stopPropagation();
                             handleDiscardLootItem(item);
                           }}
-                          className="px-2 py-1 bg-red-950/50 hover:bg-red-900/80 active:bg-red-800 text-red-400 hover:text-red-100 rounded border border-red-500/30 text-[10px] font-bold flex items-center gap-1 transition active:scale-95 group/btn"
-                          title="Vứt bỏ vật phẩm này ngay lập tức (xóa khỏi túi đồ)"
+                          className="px-2 py-1 bg-red-950/60 hover:bg-red-900 active:bg-red-800 text-red-300 rounded-lg border border-red-500/40 text-[10px] font-bold flex items-center gap-1 transition active:scale-95 group/btn cursor-pointer"
+                          title="Vứt bỏ vật phẩm này ngay lập tức"
                         >
-                          <Trash2 className="w-3 h-3 group-hover/btn:scale-110 text-red-400 group-hover/btn:text-white transition-transform" />
+                          <Trash2 className="w-3 h-3 group-hover/btn:scale-110 text-red-400 transition-transform" />
                           <span>Vứt</span>
                         </button>
                       </div>
@@ -2033,14 +2164,15 @@ export default function App() {
                 })}
             </div>
 
+            {/* Confirm Collect Button */}
             <button
               onClick={() => {
                 soundEngine.playClick();
                 setLootModalData(null);
               }}
-              className="w-full py-3 bg-gradient-to-r from-[#ffcc00] to-[#f59e0b] hover:from-[#ffe066] hover:to-[#fbbf24] text-black font-black rounded-xl text-xs transition uppercase tracking-wider shadow-lg active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-3 bg-gradient-to-r from-[#ffcc00] via-[#f59e0b] to-[#d97706] hover:brightness-110 text-black font-black rounded-xl text-xs transition uppercase tracking-wider shadow-lg shadow-[#ffcc00]/25 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>THU NHẬN TOÀN BỘ [ESC]</span>
+              <span>THU THẬP TẤT CẢ VÀO NHẪN TRỮ VẬT [ESC]</span>
             </button>
           </div>
         </div>
