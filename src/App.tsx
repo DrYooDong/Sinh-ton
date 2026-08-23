@@ -237,6 +237,7 @@ export default function App() {
   const [isGeminiAIOpen, setIsGeminiAIOpen] = useState(false);
   const [aiCompanionPrompt, setAiCompanionPrompt] = useState<string | undefined>(undefined);
   const [isKeybindingsOpen, setIsKeybindingsOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [activeStation, setActiveStation] = useState<SupplyStationEntity | null>(null);
   const [activeEncounter, setActiveEncounter] = useState<RandomEncounter | null>(null);
 
