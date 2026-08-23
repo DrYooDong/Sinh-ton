@@ -1,0 +1,6 @@
+{
+  "name": "Sinh Tồn Đường Cao Tốc 2D",
+  "description": "Game RPG sinh tồn 2D Top-Down trục dọc tối ưu Mobile/Tablet trên đường cao tốc toàn cầu: 8 Giai đoạn sinh tồn, Đột phá Cảnh giới Sinh Tồn, Vườn Thủy Canh trên RV, Tiến hóa Xe Nhà Pháo Đài & Thần Thú Đồng Hành, Chế độ Lái Tự Động (Auto Cruise), Thiên phú 10 Phát Nhập Hồn, Bàn Rèn, Kênh Thế Giới và Cố Vấn AI Gemini.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Sinh Tồn Đường Cao Tốc 2D",
+  "description": "Game sinh tồn 2D pixel trên đường cao tốc toàn cầu: Thiên phú 10 Phát Nhập Hồn, cây kỹ năng sinh tồn (Survival Skills Tree), biến cố ngẫu nhiên xa lộ (Encounter Engine), âm thanh không gian Web Audio đa tầng (Spatial & Ambient Audio), nâng cấp xe RV, bàn rèn chế tạo, chiến đấu dã thú, giao dịch kênh thế giới.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

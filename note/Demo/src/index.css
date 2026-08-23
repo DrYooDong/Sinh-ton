@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-main: #050506;
+    --surface-1: #0c0c0e;
+    --surface-2: #131315;
+    --surface-3: #1a1a1d;
+    --border-main: #2d2d30;
+    --border-accent: #3e3e42;
+    --cyan-neon: #00f2ff;
+    --ember-red: #ff4b2b;
+    --ember-rose: #ff416c;
+    --gold-accent: #ffcc00;
+    --bio-green: #4cd137;
+  }
+
+  body {
+    background-color: #050506;
+    color: #e0e0e0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0c0c0e;
+}
+::-webkit-scrollbar-thumb {
+  background: #2d2d30;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00f2ff;
+}
+
+/* Tech dot grid background pattern */
+.bg-tech-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Tech glowing accents */
+.glow-cyan {
+  box-shadow: 0 0 15px rgba(0, 242, 255, 0.25);
+}
+
+.glow-ember {
+  box-shadow: 0 0 15px rgba(255, 75, 43, 0.25);
+}
+
+.glow-gold {
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.25);
+}
