@@ -586,17 +586,125 @@ class SoundEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(160, now);
-    osc.frequency.linearRampToValueAtTime(60, now + 0.2);
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.linearRampToValueAtTime(70, now + 0.18);
 
     gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.2);
+    osc.stop(now + 0.18);
+  }
+
+  // Play Monster Roar (Gầm gừ thị uy)
+  public playBeastRoar(isBoss: boolean = false) {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const osc2 = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(isBoss ? 450 : 700, now);
+    filter.frequency.linearRampToValueAtTime(150, now + (isBoss ? 0.7 : 0.45));
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(isBoss ? 95 : 140, now);
+    osc.frequency.exponentialRampToValueAtTime(isBoss ? 35 : 55, now + (isBoss ? 0.7 : 0.45));
+
+    osc2.type = 'square';
+    osc2.frequency.setValueAtTime(isBoss ? 110 : 165, now);
+    osc2.frequency.exponentialRampToValueAtTime(isBoss ? 40 : 65, now + (isBoss ? 0.7 : 0.45));
+
+    gain.gain.setValueAtTime(isBoss ? 0.45 : 0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + (isBoss ? 0.7 : 0.45));
+
+    osc.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc2.start(now);
+    osc.stop(now + (isBoss ? 0.7 : 0.45));
+    osc2.stop(now + (isBoss ? 0.7 : 0.45));
+  }
+
+  // Play Monster Enrage Screech (Cuồng Nộ)
+  public playBeastEnrage() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.linearRampToValueAtTime(320, now + 0.2);
+    osc.frequency.exponentialRampToValueAtTime(80, now + 0.55);
+
+    gain.gain.setValueAtTime(0.38, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.55);
+  }
+
+  // Play Monster Hiss / Snake / Poison Spit
+  public playPoisonSpit() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(850, now);
+    osc.frequency.exponentialRampToValueAtTime(220, now + 0.22);
+
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.22);
+  }
+
+  // Play Monster Death Cry
+  public playMonsterDeath() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(130, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + 0.4);
+
+    gain.gain.setValueAtTime(0.32, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.4);
   }
 
   // Play Pet Dog Bark (Chó Vàng sủa)

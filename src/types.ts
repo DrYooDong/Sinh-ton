@@ -282,6 +282,8 @@ export interface FarmCropDef {
   effectDescription: string;
 }
 
+export type BeastElementType = 'physical' | 'poison' | 'fire' | 'dark' | 'cyber' | 'frost';
+
 export interface BeastEntity {
   id: string;
   type:
@@ -301,7 +303,13 @@ export interface BeastEntity {
     | 'sand_wyrm'
     | 'desert_hyena'
     | 'mutant_vulture'
-    | 'armored_rhino';
+    | 'armored_rhino'
+    | 'sand_behemoth'
+    | 'mecha_chimera'
+    | 'golden_scorpion'
+    | 'twin_vulture'
+    | 'infernal_hound'
+    | 'frost_specter';
   name: string;
   x: number; // Distance along highway
   laneOffset: number; // Y offset from road center (-50 to 50)
@@ -310,12 +318,19 @@ export interface BeastEntity {
   speed: number;
   attackDamage: number;
   rarity: ItemRarity;
+  element?: BeastElementType;
+  isBoss?: boolean;
   isNightPredator?: boolean;
   isPacified?: boolean; // Tẩm thuốc Thất Tình Lục Dục
+  isEnraged?: boolean;
+  enrageThreshold?: number; // % HP to trigger enrage (e.g. 0.35)
   isDead: boolean;
   drops: { itemId: string; quantity: number; chance: number }[];
   badgesDrop: number;
   guardingChestId?: string;
+  hitFlash?: number; // duration of hit flash in ms/ticks
+  attackCooldown?: number;
+  specialSkillName?: string;
 }
 
 export interface ChestEntity {

@@ -1472,7 +1472,16 @@ export function resolveItemInfo(itemId: string, fallbackRarity: ItemRarity = 'co
     cotton: { name: 'Bông sợi tự nhiên', icon: '☁️', rarity: 'good' },
     ice_melon_slice: { name: 'Miếng dưa băng mát lạnh', icon: '🍉', rarity: 'superior' },
     elixir_of_life: { name: 'Tinh chất hồi sinh', icon: '🧪', rarity: 'perfect' },
-    inferno_spice: { name: 'Gia vị cuồng nộ', icon: '🔥', rarity: 'epic' },
+    meat: { name: 'Thịt thú tươi', icon: '🥩', rarity: 'common' },
+    buffalo_meat: { name: 'Thịt trâu rừng thiết giáp', icon: '🥩', rarity: 'superior' },
+    leopard_meat: { name: 'Thịt báo hoa sa mạc', icon: '🥩', rarity: 'good' },
+    bear_paw: { name: 'Bàn tay gấu hầm dinh dưỡng', icon: '🐾', rarity: 'epic' },
+    tiger_bone_powder: { name: 'Bột cao xương hổ bạo kích', icon: '✨', rarity: 'brilliant' },
+    special_crystal: { name: 'Tinh thể nguyên tố đặc biệt', icon: '💠', rarity: 'brilliant' },
+    titanium_alloy: { name: 'Hợp kim titan siêu cứng', icon: '🛡️', rarity: 'brilliant' },
+    electronic_chip: { name: 'Vi mạch điện tử cơ giáp', icon: '💽', rarity: 'superior' },
+    ammo_standard: { name: 'Hộp đạn tiêu chuẩn 9mm', icon: '💥', rarity: 'good' },
+    ammo_ap: { name: 'Đạn xuyên giáp AP Armor-Piercing', icon: '💥', rarity: 'superior' },
     cosmic_core: { name: 'Lõi Năng Lượng Không Gian', icon: '🪐', rarity: 'brilliant' },
   };
 

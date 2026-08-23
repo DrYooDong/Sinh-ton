@@ -320,7 +320,7 @@ export class GameEngine {
     }
   }
 
-  private createBeastForDistance(
+  public createBeastForDistance(
     x: number,
     y: number,
     distKm: number,
@@ -329,134 +329,232 @@ export class GameEngine {
     preferNightPredator?: boolean
   ): BeastEntity {
     let beastType: BeastEntity['type'] = 'snake';
-    let hp = 30;
+    let hp = 35;
     let dmg = 8;
     let speed = 1.6;
     let beastName = 'Rắn Độc Sa Mạc';
     let isNightPred = false;
+    let isBoss = false;
+    let element: BeastEntity['element'] = 'physical';
+    let specialSkillName = 'Cắn Xé';
 
     // Difficulty multipliers
     const hpMult = this.difficulty === 'nightmare' ? 1.6 : this.difficulty === 'hard' ? 1.3 : 1.0;
     const dmgMult = this.difficulty === 'nightmare' ? 1.7 : this.difficulty === 'hard' ? 1.35 : 1.0;
-    const distBonus = 1 + (distKm * 0.05); // +5% stat per KM
+    const distBonus = 1 + distKm * 0.05; // +5% stat per KM
 
-    if (preferNightPredator || Math.random() < 0.25) {
+    // World Boss Encounter Spawns (rare epic milestones or brilliant chests)
+    if ((distKm > 20 && Math.random() < 0.2) || (rarity === 'brilliant' && Math.random() < 0.5)) {
+      const bossChoices: BeastEntity['type'][] = ['sand_behemoth', 'mecha_chimera', 'golden_scorpion', 'twin_vulture'];
+      beastType = bossChoices[Math.floor(Math.random() * bossChoices.length)];
+      isBoss = true;
+
+      if (beastType === 'sand_behemoth') {
+        hp = 850;
+        dmg = 75;
+        speed = 1.6;
+        beastName = '👑 [BOSS] CỰ THÚ SA MẠC BEHEMOTH';
+        element = 'fire';
+        specialSkillName = 'Đại Địa Chấn Động & Nham Thạch';
+      } else if (beastType === 'mecha_chimera') {
+        hp = 780;
+        dmg = 80;
+        speed = 2.1;
+        beastName = '👑 [BOSS] CƠ GIÁP ĐỘT BIẾN CHIMERA';
+        element = 'cyber';
+        specialSkillName = 'Tia Xung Kích Plasma & Đột Kích Laser';
+      } else if (beastType === 'golden_scorpion') {
+        hp = 680;
+        dmg = 68;
+        speed = 1.9;
+        beastName = '👑 [BOSS] BỌ CẠP HOÀNG KIM CỔ ĐẠI';
+        element = 'poison';
+        specialSkillName = 'Độc Tố Vô Tận & Giáp Kim Cương';
+      } else {
+        hp = 620;
+        dmg = 72;
+        speed = 2.6;
+        beastName = '👑 [BOSS] KỀN KỀN TỬ THẦN 2 ĐẦU';
+        element = 'dark';
+        specialSkillName = 'Cuồng Phong Hắc Ám';
+      }
+    } else if (preferNightPredator || Math.random() < 0.28) {
       // Night Predatory / Exotic Spawns
-      const nightTypes: BeastEntity['type'][] = ['night_stalker', 'desert_hyena', 'mutant_vulture', 'desert_scorpion', 'evil_spirit'];
+      const nightTypes: BeastEntity['type'][] = [
+        'night_stalker',
+        'infernal_hound',
+        'frost_specter',
+        'desert_scorpion',
+        'evil_spirit',
+        'desert_hyena',
+        'mutant_vulture',
+      ];
       beastType = nightTypes[Math.floor(Math.random() * nightTypes.length)];
       isNightPred = true;
 
       if (beastType === 'night_stalker') {
-        hp = 220;
-        dmg = 38;
+        hp = 260;
+        dmg = 42;
         speed = 2.4;
         beastName = 'Dạ Ma Khát Máu';
+        element = 'dark';
+        specialSkillName = 'Vuốt Quỷ Hư Không';
+      } else if (beastType === 'infernal_hound') {
+        hp = 220;
+        dmg = 38;
+        speed = 2.5;
+        beastName = 'Ma Khuyển Địa Ngục';
+        element = 'fire';
+        specialSkillName = 'Hơi Thở Hỏa Ngục';
+      } else if (beastType === 'frost_specter') {
+        hp = 200;
+        dmg = 36;
+        speed = 2.0;
+        beastName = 'U Hồn Băng Tuyết';
+        element = 'frost';
+        specialSkillName = 'Băng Giá Thấu Cốt';
       } else if (beastType === 'desert_scorpion') {
-        hp = 140;
-        dmg = 24;
+        hp = 160;
+        dmg = 26;
         speed = 1.8;
         beastName = 'Bọ Cạp Sa Mạc Khổng Lồ';
+        element = 'poison';
+        specialSkillName = 'Kim Tiêm Độc Axit';
       } else if (beastType === 'desert_hyena') {
-        hp = 110;
-        dmg = 20;
+        hp = 120;
+        dmg = 22;
         speed = 2.2;
         beastName = 'Linh Cẩu Xương Xám';
+        element = 'physical';
+        specialSkillName = 'Gặm Xương';
       } else if (beastType === 'mutant_vulture') {
-        hp = 95;
-        dmg = 22;
+        hp = 110;
+        dmg = 24;
         speed = 2.5;
         beastName = 'Kền Kền Đột Biến Sa Mạc';
+        element = 'dark';
+        specialSkillName = 'Bổ Nhào Tốc Biến';
       } else {
-        hp = 160;
-        dmg = 30;
+        hp = 180;
+        dmg = 32;
         speed = 1.9;
         beastName = 'Oán Hồn Đêm Sa Mạc';
+        element = 'dark';
+        specialSkillName = 'Tiếng Khóc Hồn Ma';
       }
     } else if (distKm > 15 || rarity === 'brilliant') {
       const choices: BeastEntity['type'][] = ['tiger', 'lion', 'sand_wyrm', 'armored_rhino'];
       beastType = choices[Math.floor(Math.random() * choices.length)];
       if (beastType === 'sand_wyrm') {
-        hp = 340;
-        dmg = 50;
-        speed = 1.7;
+        hp = 380;
+        dmg = 55;
+        speed = 1.8;
         beastName = 'Cự Trùng Cát Tử Thần';
+        element = 'physical';
+        specialSkillName = 'Hàm Răng Bão Cát';
       } else if (beastType === 'armored_rhino') {
-        hp = 420;
-        dmg = 45;
-        speed = 1.6;
-        beastName = 'Tê Giác Sa Mạc Bọc Giáp';
-      } else if (beastType === 'tiger') {
-        hp = 300;
+        hp = 460;
         dmg = 48;
-        speed = 2.3;
-        beastName = 'Hổ Rừng Bạo Kích';
-      } else {
+        speed = 1.7;
+        beastName = 'Tê Giác Sa Mạc Bọc Giáp';
+        element = 'physical';
+        specialSkillName = 'Cú Húc Thiết Giáp';
+      } else if (beastType === 'tiger') {
         hp = 320;
         dmg = 52;
+        speed = 2.3;
+        beastName = 'Hổ Rừng Bạo Kích';
+        element = 'physical';
+        specialSkillName = 'Trảo Phách Bạo Kích';
+      } else {
+        hp = 350;
+        dmg = 56;
         speed = 2.2;
         beastName = 'Sư Tử Sa Mạc Chúa';
+        element = 'physical';
+        specialSkillName = 'Gầm Rú Vương Giả';
       }
     } else if (distKm > 8 || rarity === 'epic') {
       const choices: BeastEntity['type'][] = ['bear', 'buffalo', 'desert_scorpion', 'bandit'];
       beastType = choices[Math.floor(Math.random() * choices.length)];
       if (beastType === 'bear') {
-        hp = 220;
-        dmg = 35;
+        hp = 240;
+        dmg = 38;
         speed = 1.7;
         beastName = 'Gấu Khổng Lồ Đêm Đen';
+        element = 'physical';
+        specialSkillName = 'Gấu Tát Ngàn Cân';
       } else if (beastType === 'buffalo') {
-        hp = 250;
-        dmg = 30;
+        hp = 280;
+        dmg = 32;
         speed = 1.8;
         beastName = 'Trâu Rừng Thiết Giáp';
+        element = 'physical';
+        specialSkillName = 'Ủi Càn Quét';
       } else if (beastType === 'bandit') {
-        hp = 160;
-        dmg = 32;
+        hp = 180;
+        dmg = 35;
         speed = 2.0;
         beastName = 'Toán Cướp Xa Lộ Vũ Trang';
+        element = 'cyber';
+        specialSkillName = 'Xả Đạn Tự Động';
       } else {
-        hp = 150;
-        dmg = 26;
+        hp = 170;
+        dmg = 28;
         speed = 1.8;
         beastName = 'Bọ Cạp Độc Khổng Lồ';
+        element = 'poison';
+        specialSkillName = 'Phun Axit Ăn Mòn';
       }
     } else if (distKm > 4 || rarity === 'perfect' || rarity === 'superior') {
       const choices: BeastEntity['type'][] = ['leopard', 'wolf', 'desert_hyena', 'desert_scorpion'];
       beastType = choices[Math.floor(Math.random() * choices.length)];
       if (beastType === 'leopard') {
-        hp = 110;
-        dmg = 22;
+        hp = 120;
+        dmg = 24;
         speed = 2.3;
         beastName = 'Báo Hoa Sa Mạc';
+        element = 'physical';
+        specialSkillName = 'Vồ Mồi Tốc Độ';
       } else if (beastType === 'desert_hyena') {
-        hp = 95;
-        dmg = 18;
+        hp = 105;
+        dmg = 20;
         speed = 2.1;
         beastName = 'Linh Cẩu Sa Mạc';
+        element = 'physical';
+        specialSkillName = 'Cắn Xé Hội Đồng';
       } else if (beastType === 'desert_scorpion') {
-        hp = 120;
-        dmg = 20;
+        hp = 130;
+        dmg = 22;
         speed = 1.7;
         beastName = 'Bọ Cạp Gai Độc';
+        element = 'poison';
+        specialSkillName = 'Châm Độc';
       } else {
-        hp = 85;
-        dmg = 16;
+        hp = 95;
+        dmg = 18;
         speed = 2.0;
         beastName = 'Sói Hoang Đói Khát';
+        element = 'physical';
+        specialSkillName = 'Tiếng Hú Đêm';
       }
     } else if (distKm > 1 || rarity === 'good') {
       const choices: BeastEntity['type'][] = ['cat', 'wolf', 'snake'];
       beastType = choices[Math.floor(Math.random() * choices.length)];
-      hp = beastType === 'wolf' ? 65 : 45;
-      dmg = beastType === 'wolf' ? 14 : 10;
+      hp = beastType === 'wolf' ? 70 : 50;
+      dmg = beastType === 'wolf' ? 15 : 11;
       speed = 1.8;
       beastName = beastType === 'wolf' ? 'Sói Con Rình Rập' : beastType === 'cat' ? 'Mèo Hoang Sa Mạc' : 'Rắn Chuông Sa Mạc';
+      element = beastType === 'snake' ? 'poison' : 'physical';
+      specialSkillName = beastType === 'snake' ? 'Cắn Nọc Độc' : 'Cào Cấu';
     } else {
       beastType = Math.random() > 0.5 ? 'snake' : 'mouse';
-      hp = 30;
-      dmg = 7;
+      hp = 35;
+      dmg = 8;
       speed = 1.5;
       beastName = beastType === 'snake' ? 'Rắn Độc Núp Bụi' : 'Chuột Đồng Đột Biến';
+      element = beastType === 'snake' ? 'poison' : 'physical';
+      specialSkillName = 'Cắn Trộm';
     }
 
     const finalHp = Math.round(hp * hpMult * distBonus);
@@ -470,83 +568,43 @@ export class GameEngine {
       laneOffset: y,
       hp: finalHp,
       maxHp: finalHp,
-      speed: speed * (this.difficulty === 'nightmare' ? 1.25 : 1.0),
+      speed: speed * (this.difficulty === 'nightmare' ? 1.25 : 1.0) * (isBoss ? 1.15 : 1.0),
       attackDamage: finalDmg,
       rarity,
+      element,
+      isBoss,
       isNightPredator: isNightPred,
+      isEnraged: false,
+      enrageThreshold: isBoss ? 0.4 : 0.3,
       isDead: false,
       drops: this.generateBeastDrops(beastType),
-      badgesDrop: rarity === 'brilliant' ? 30 : rarity === 'perfect' ? 15 : rarity === 'superior' ? 8 : 4,
+      badgesDrop: isBoss ? 100 : rarity === 'brilliant' ? 35 : rarity === 'perfect' ? 18 : rarity === 'superior' ? 10 : 5,
       guardingChestId,
+      specialSkillName,
     };
   }
 
   private generateLootForRarity(rarity: ItemRarity): { itemId: string; quantity: number }[] {
     if (rarity === 'brilliant') {
-      const bpChoices = ['blueprint_bp_desert_eagle', 'blueprint_bp_ice_cream_maker', 'blueprint_bp_hunting_rifle'];
-      const chosenBp = bpChoices[Math.floor(Math.random() * bpChoices.length)];
-      return [
-        { itemId: 'diamond', quantity: 1 },
-        { itemId: chosenBp, quantity: 1 },
-        { itemId: 'high_grade_fuel', quantity: 15 },
-        { itemId: 'copper_plate', quantity: 3 },
+      const topTier = [
+        [{ itemId: 'space_crystal', quantity: 2 }, { itemId: 'ammo_ap', quantity: 30 }],
+        [{ itemId: 'diamond', quantity: 2 }, { itemId: 'titanium_alloy', quantity: 5 }],
+        [{ itemId: 'special_crystal', quantity: 3 }, { itemId: 'copper_plate', quantity: 15 }],
       ];
+      return topTier[Math.floor(Math.random() * topTier.length)];
     }
-    if (rarity === 'epic') {
-      const bpChoices = ['blueprint_bp_storage_ring', 'blueprint_bp_hunting_rifle', 'blueprint_bp_ice_cream_maker'];
-      const chosenBp = bpChoices[Math.floor(Math.random() * bpChoices.length)];
-      return [
-        { itemId: 'space_crystal', quantity: 1 },
-        { itemId: chosenBp, quantity: 1 },
-        { itemId: 'iron_plate', quantity: 4 },
+    if (rarity === 'perfect' || rarity === 'superior') {
+      const highTier = [
+        [{ itemId: 'iron_plate', quantity: 8 }, { itemId: 'copper_plate', quantity: 6 }],
+        [{ itemId: 'gunpowder', quantity: 10 }, { itemId: 'purified_water_500ml', quantity: 3 }],
+        [{ itemId: 'ammo_standard', quantity: 25 }, { itemId: 'electronic_chip', quantity: 2 }],
       ];
+      return highTier[Math.floor(Math.random() * highTier.length)];
     }
-    if (rarity === 'perfect') {
-      const bpChoices = [
-        'blueprint_bp_roof_water_tank',
-        'blueprint_bp_car_fridge',
-        'blueprint_bp_tang_dao',
-        'blueprint_bp_focus_cigarette',
-        'blueprint_bp_kevlar_vest',
-        'blueprint_bp_radar_scanner',
-      ];
-      const chosenBp = bpChoices[Math.floor(Math.random() * bpChoices.length)];
-      return [
-        { itemId: chosenBp, quantity: 1 },
-        { itemId: 'gunpowder', quantity: 3 },
-        { itemId: 'iron_plate', quantity: 3 },
-      ];
-    }
-    if (rarity === 'superior') {
-      const bpChoices = [
-        'blueprint_bp_car_ac',
-        'blueprint_bp_car_engine',
-        'blueprint_bp_water_purifier',
-        'blueprint_bp_car_transmission',
-        'blueprint_bp_reinforced_crossbow',
-        'blueprint_bp_ammo_ap',
-        'blueprint_bp_bulletproof_glass',
-      ];
-      const chosenBp = bpChoices[Math.floor(Math.random() * bpChoices.length)];
-      return [
-        { itemId: chosenBp, quantity: 1 },
-        { itemId: 'iron_plate', quantity: 2 },
-        { itemId: 'rubber', quantity: 2 },
-      ];
-    }
-    if (rarity === 'good') {
-      const bpChoices = ['blueprint_bp_steel_dagger', 'blueprint_bp_car_tires', 'blueprint_bp_medical_kit'];
-      const chosenBp = bpChoices[Math.floor(Math.random() * bpChoices.length)];
-      return [
-        Math.random() > 0.4 ? { itemId: chosenBp, quantity: 1 } : { itemId: 'iron_plate', quantity: 2 },
-        { itemId: 'purified_water_500ml', quantity: 1 },
-      ];
-    }
-    // common: scarce supplies (1 wood or 1 bread or 1 water)
     const commonLootPool = [
-      [{ itemId: 'wood', quantity: 2 }, { itemId: 'purified_water_500ml', quantity: 1 }],
-      [{ itemId: 'wood', quantity: 3 }],
-      [{ itemId: 'bread', quantity: 1 }, { itemId: 'salt', quantity: 1 }],
+      [{ itemId: 'wood', quantity: 4 }, { itemId: 'purified_water_500ml', quantity: 1 }],
+      [{ itemId: 'iron_plate', quantity: 3 }, { itemId: 'bread', quantity: 1 }],
+      [{ itemId: 'rubber', quantity: 2 }, { itemId: 'wood', quantity: 2 }],
       [{ itemId: 'rubber', quantity: 1 }, { itemId: 'iron_plate', quantity: 1 }],
     ];
     return commonLootPool[Math.floor(Math.random() * commonLootPool.length)];
@@ -554,6 +612,45 @@ export class GameEngine {
 
   private generateBeastDrops(type: BeastEntity['type']): { itemId: string; quantity: number; chance: number }[] {
     switch (type) {
+      case 'sand_behemoth':
+        return [
+          { itemId: 'meat', quantity: 300, chance: 1 },
+          { itemId: 'space_crystal', quantity: 3, chance: 0.9 },
+          { itemId: 'diamond', quantity: 2, chance: 0.8 },
+          { itemId: 'copper_plate', quantity: 30, chance: 1 },
+        ];
+      case 'mecha_chimera':
+        return [
+          { itemId: 'iron_plate', quantity: 40, chance: 1 },
+          { itemId: 'space_crystal', quantity: 2, chance: 0.85 },
+          { itemId: 'ammo_ap', quantity: 50, chance: 1 },
+          { itemId: 'gunpowder', quantity: 25, chance: 1 },
+        ];
+      case 'golden_scorpion':
+        return [
+          { itemId: 'meat', quantity: 200, chance: 1 },
+          { itemId: 'diamond', quantity: 2, chance: 0.9 },
+          { itemId: 'space_crystal', quantity: 2, chance: 0.75 },
+          { itemId: 'gunpowder', quantity: 20, chance: 1 },
+        ];
+      case 'twin_vulture':
+        return [
+          { itemId: 'meat', quantity: 180, chance: 1 },
+          { itemId: 'space_crystal', quantity: 2, chance: 0.8 },
+          { itemId: 'cotton', quantity: 20, chance: 1 },
+          { itemId: 'copper_plate', quantity: 20, chance: 0.9 },
+        ];
+      case 'infernal_hound':
+        return [
+          { itemId: 'wolf_meat', quantity: 40, chance: 1 },
+          { itemId: 'gunpowder', quantity: 15, chance: 0.9 },
+          { itemId: 'space_crystal', quantity: 1, chance: 0.4 },
+        ];
+      case 'frost_specter':
+        return [
+          { itemId: 'space_crystal', quantity: 2, chance: 0.7 },
+          { itemId: 'diamond', quantity: 1, chance: 0.5 },
+        ];
       case 'snake':
         return [{ itemId: 'snake_meat', quantity: 1, chance: 1 }];
       case 'mouse':
@@ -1058,18 +1155,47 @@ export class GameEngine {
             }
 
             beast.hp -= finalDmg;
+            beast.hitFlash = 10;
+            soundEngine.playMonsterHit();
 
-            // Blood/impact particles
-            for (let k = 0; k < 7; k++) {
+            // Check Enrage mode trigger
+            const enrageThresh = beast.enrageThreshold || 0.35;
+            if (!beast.isEnraged && beast.hp > 0 && beast.hp / beast.maxHp <= enrageThresh) {
+              beast.isEnraged = true;
+              beast.speed *= 1.4;
+              beast.attackDamage = Math.round(beast.attackDamage * 1.35);
+              soundEngine.playBeastEnrage();
+              this.triggerScreenShake(12, 0.45);
+              this.addFloatingText(beast.laneOffset, -beast.x - 55, '🔥 CUỒNG NỘ! HÓA QUỶ!', '#ef4444', true);
+
+              for (let k = 0; k < 18; k++) {
+                this.particles.push({
+                  x: beast.laneOffset,
+                  y: -beast.x,
+                  vx: (Math.random() - 0.5) * 8,
+                  vy: (Math.random() - 0.5) * 8,
+                  color: '#ef4444',
+                  size: 4,
+                  life: 0,
+                  maxLife: 28,
+                  alpha: 1,
+                  type: 'ember',
+                });
+              }
+            }
+
+            // Blood/elemental impact particles
+            const particleColor = beast.element === 'poison' ? '#22c55e' : beast.element === 'cyber' ? '#00f2ff' : beast.element === 'dark' ? '#a855f7' : beast.element === 'frost' ? '#67e8f9' : isCrit ? '#f59e0b' : '#dc2626';
+            for (let k = 0; k < 8; k++) {
               this.particles.push({
                 x: beast.laneOffset,
                 y: -beast.x,
-                vx: (Math.random() - 0.5) * 6,
-                vy: (Math.random() - 0.5) * 6,
-                color: isCrit ? '#f59e0b' : '#dc2626',
-                size: isCrit ? 4.5 : 3,
+                vx: (Math.random() - 0.5) * 7,
+                vy: (Math.random() - 0.5) * 7,
+                color: particleColor,
+                size: isCrit ? 5 : 3.5,
                 life: 0,
-                maxLife: 20,
+                maxLife: 22,
                 alpha: 1,
                 type: 'spark',
               });
@@ -1078,7 +1204,24 @@ export class GameEngine {
             if (beast.hp <= 0) {
               beast.isDead = true;
               beast.hp = 0;
-              this.addFloatingText(beast.laneOffset, -beast.x - 45, 'ĐÃ TIÊU DIỆT! 💀', '#eab308');
+              soundEngine.playMonsterDeath();
+              this.addFloatingText(beast.laneOffset, -beast.x - 45, beast.isBoss ? '👑 TRẢM BOSS CHIẾN TÍCH! 🏆' : 'ĐÃ TIÊU DIỆT! 💀', '#fbbf24', true);
+
+              // Death explosion of elemental particles
+              for (let k = 0; k < 20; k++) {
+                this.particles.push({
+                  x: beast.laneOffset,
+                  y: -beast.x,
+                  vx: (Math.random() - 0.5) * 9,
+                  vy: (Math.random() - 0.5) * 9,
+                  color: beast.isBoss ? '#f59e0b' : particleColor,
+                  size: 4,
+                  life: 0,
+                  maxLife: 35,
+                  alpha: 1,
+                  type: 'spark',
+                });
+              }
             }
           }
           break;
@@ -1097,9 +1240,13 @@ export class GameEngine {
     // Night buff: Beasts are faster & more aggressive
     const nightSpeedMult = this.isNight ? 1.35 : 1.0;
     const nightDmgMult = this.isNight ? 1.3 : 1.0;
-    const aggroDist = this.isNight ? 320 : 220;
+    const aggroDist = this.isNight ? 350 : 250;
 
     for (const beast of this.beasts) {
+      if (beast.hitFlash && beast.hitFlash > 0) {
+        beast.hitFlash--;
+      }
+
       if (beast.isDead) continue;
 
       if (beast.isPacified) {
@@ -1113,47 +1260,68 @@ export class GameEngine {
       const dy = targetPy - (-beast.x);
       const dist = Math.sqrt(dx * dx + dy * dy);
 
+      // Enraged / Boss aura emissions
+      if ((beast.isEnraged || beast.isBoss) && Math.random() < 0.3) {
+        this.particles.push({
+          x: beast.laneOffset + (Math.random() - 0.5) * 20,
+          y: -beast.x + (Math.random() - 0.5) * 20,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -Math.random() * 3,
+          color: beast.isEnraged ? '#ef4444' : (beast.element === 'cyber' ? '#00f2ff' : '#f59e0b'),
+          size: 3,
+          life: 0,
+          maxLife: 25,
+          alpha: 0.8,
+          type: 'ember',
+        });
+      }
+
       // Aggro chase
       if (dist < aggroDist && dist > 15) {
-        const beastSpeed = beast.speed * nightSpeedMult;
+        const beastSpeed = beast.speed * nightSpeedMult * (beast.isEnraged ? 1.25 : 1.0);
         beast.laneOffset += (dx / dist) * beastSpeed * 0.8;
         beast.x -= (dy / dist) * beastSpeed * 0.8; // Moving towards target in vertical space
       }
 
       // Attack player on foot if too close
-      if (this.mode === 'onfoot' && dist < 24) {
+      if (this.mode === 'onfoot' && dist < 26) {
         const lastAtk = this.beastAttackCooldowns[beast.id] || 0;
-        if (performance.now() - lastAtk > 900) {
+        if (performance.now() - lastAtk > (beast.isEnraged ? 650 : 900)) {
           this.beastAttackCooldowns[beast.id] = performance.now();
-          this.triggerScreenShake(8, 0.25);
+          this.triggerScreenShake(beast.isBoss ? 15 : 9, 0.3);
+          const finalAtkDmg = beast.attackDamage * nightDmgMult * (beast.isEnraged ? 1.3 : 1.0);
           if (this.onPlayerDamaged) {
-            this.onPlayerDamaged(beast.attackDamage * nightDmgMult);
+            this.onPlayerDamaged(finalAtkDmg);
           }
-          this.addFloatingText(this.playerX, this.playerY - 25, `BỊ CẮN! -${Math.round(beast.attackDamage * nightDmgMult)}`, '#ef4444');
+          this.addFloatingText(this.playerX, this.playerY - 25, `⚠️ ${beast.specialSkillName || 'BỊ CẮN'}! -${Math.round(finalAtkDmg)}`, '#ef4444');
+          if (beast.element === 'poison') soundEngine.playPoisonSpit();
+          else soundEngine.playBeastRoar(beast.isBoss);
         }
       }
 
       // Attack / Slam into Car when in driving mode
-      if (this.mode === 'driving' && dist < 38) {
+      if (this.mode === 'driving' && dist < 42) {
         const lastAtk = this.beastAttackCooldowns[beast.id] || 0;
-        if (performance.now() - lastAtk > 1000) {
+        if (performance.now() - lastAtk > (beast.isEnraged ? 700 : 1000)) {
           this.beastAttackCooldowns[beast.id] = performance.now();
-          this.triggerScreenShake(12, 0.35);
+          this.triggerScreenShake(beast.isBoss ? 16 : 12, 0.35);
           
           // Heavy ram bumper skill: deals return ramming damage to the beast
           const ramBumperLvl = this.skills['heavy_ram_bumper'] || 0;
           const ramDmg = Math.round(45 + ramBumperLvl * 35);
           beast.hp -= ramDmg;
+          beast.hitFlash = 10;
           this.addFloatingText(beast.laneOffset, -beast.x - 25, `🚗 TÔNG XE! -${ramDmg}`, '#38bdf8');
 
           if (beast.hp <= 0) {
             beast.isDead = true;
             beast.hp = 0;
-            this.addFloatingText(beast.laneOffset, -beast.x - 40, 'ĐÃ HẠ GỤC! 💀', '#eab308');
+            soundEngine.playMonsterDeath();
+            this.addFloatingText(beast.laneOffset, -beast.x - 40, beast.isBoss ? '👑 TRẢM BOSS! 💀' : 'ĐÃ HẠ GỤC! 💀', '#eab308');
           }
 
           // Durability reduction reduced by ram bumper skill
-          const baseVehDmg = Math.max(3, Math.round(beast.attackDamage * 0.3 * nightDmgMult));
+          const baseVehDmg = Math.max(3, Math.round(beast.attackDamage * 0.3 * nightDmgMult * (beast.isEnraged ? 1.3 : 1.0)));
           const vehDmg = Math.max(1, Math.round(baseVehDmg * (1 - ramBumperLvl * 0.25)));
 
           if (this.onVehicleDamaged) {
@@ -1163,16 +1331,16 @@ export class GameEngine {
           soundEngine.playCrash();
 
           // Spark particles on car impact
-          for (let k = 0; k < 8; k++) {
+          for (let k = 0; k < 10; k++) {
             this.particles.push({
               x: this.carX,
               y: this.carY,
-              vx: (Math.random() - 0.5) * 5,
-              vy: (Math.random() - 0.5) * 5,
+              vx: (Math.random() - 0.5) * 6,
+              vy: (Math.random() - 0.5) * 6,
               color: '#fbbf24',
-              size: 3,
+              size: 3.5,
               life: 0,
-              maxLife: 15,
+              maxLife: 18,
               alpha: 1,
               type: 'spark',
             });
@@ -1186,7 +1354,7 @@ export class GameEngine {
       this.petAttackCooldown += dt;
       if (this.petAttackCooldown >= 0.85) {
         let closestBeast: BeastEntity | null = null;
-        let minDist = 180;
+        let minDist = 190;
         for (const b of this.beasts) {
           if (b.isDead) continue;
           const d = Math.hypot(b.laneOffset - this.playerX, (-b.x) - this.playerY);
@@ -1198,12 +1366,14 @@ export class GameEngine {
 
         if (closestBeast) {
           this.petAttackCooldown = 0;
-          const petDmg = 35;
+          const petDmg = 38;
           closestBeast.hp -= petDmg;
+          closestBeast.hitFlash = 10;
           this.addFloatingText(closestBeast.laneOffset, -closestBeast.x - 25, `🐕 CHÓ CẮN! -${petDmg}`, '#fde047');
           if (closestBeast.hp <= 0) {
             closestBeast.isDead = true;
             closestBeast.hp = 0;
+            soundEngine.playMonsterDeath();
             this.addFloatingText(closestBeast.laneOffset, -closestBeast.x - 40, 'ĐÃ HẠ GỤC! 💀', '#4ade80');
           }
         }
@@ -1905,159 +2075,537 @@ export class GameEngine {
 
     for (const beast of this.beasts) {
       const beastWorldY = -beast.x;
-      if (Math.abs(beastWorldY - this.cameraY) > this.height + 60) continue;
+      if (Math.abs(beastWorldY - this.cameraY) > this.height + 90) continue;
 
       ctx.save();
       ctx.translate(beast.laneOffset, beastWorldY);
 
       if (beast.isDead) {
-        // Corpse with Shimmering Loot Flare
-        ctx.fillStyle = '#450a0a';
-        ctx.fillRect(-16, -8, 32, 16);
-        ctx.fillStyle = '#ef4444';
-        ctx.fillRect(-12, -6, 24, 12);
+        // Corpse Remains with Translucent Cyber / Bio Glow & Pulsing Extraction Beacon
+        const corpsePulse = Math.sin(time * 3 + beast.x) * 0.25 + 0.75;
+        
+        // Ground blood / residue puddle
+        ctx.fillStyle = beast.element === 'poison' ? 'rgba(34, 197, 94, 0.4)' : beast.element === 'cyber' ? 'rgba(0, 242, 255, 0.35)' : beast.element === 'dark' ? 'rgba(147, 51, 234, 0.4)' : 'rgba(153, 27, 27, 0.55)';
+        ctx.beginPath();
+        ctx.ellipse(0, 4, 18, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
 
-        // Golden Loot Sparkles
-        const corpseGlow = Math.sin(time * 4 + beast.x) * 0.3 + 0.7;
-        ctx.fillStyle = `rgba(254, 240, 138, ${corpseGlow})`;
+        // Skeletal Remains / Broken Chassis
+        ctx.fillStyle = '#27272a';
+        ctx.fillRect(-14, -6, 28, 12);
+        ctx.fillStyle = '#52525b';
+        ctx.fillRect(-10, -4, 20, 8);
+
+        // Holographic Harvest Beacon
+        const beaconGrad = ctx.createLinearGradient(0, 0, 0, -45);
+        beaconGrad.addColorStop(0, `rgba(250, 204, 21, ${0.8 * corpsePulse})`);
+        beaconGrad.addColorStop(1, 'rgba(250, 204, 21, 0)');
+        ctx.fillStyle = beaconGrad;
+        ctx.fillRect(-8, -45, 16, 45);
+
+        // Interaction Tag
+        ctx.fillStyle = '#fef08a';
         ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('🥩 [E] THU HOẠCH THỊT & NGUYÊN LIỆU', 0, -14);
+        ctx.shadowColor = '#eab308';
+        ctx.shadowBlur = 6;
+        ctx.fillText('🥩 [E] THU HOẠCH NGUYÊN LIỆU', 0, -18);
+        ctx.shadowBlur = 0;
         ctx.restore();
         continue;
       }
 
-      // Breathing Animation
-      const breathY = Math.sin(time * 4.5 + beast.x) * 2;
-      let size = 22;
+      // Dynamic Movement & Breathing Bobbing
+      const walkCycle = Math.sin(time * 6 + beast.x);
+      const breathY = Math.sin(time * 4 + beast.x) * 2.5;
+      let size = 26;
 
       // Realistic Dynamic Ground Shadow
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      const shadowScale = (beast.isBoss ? 1.8 : 1.0);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
       ctx.beginPath();
-      ctx.ellipse(0, 14, 16, 7, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 16, 18 * shadowScale, 8 * shadowScale, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Biome Beast Renderers
+      // Enraged Aura (Flames & Red Vortex)
+      if (beast.isEnraged) {
+        ctx.save();
+        const rageGrad = ctx.createRadialGradient(0, breathY, 10, 0, breathY, 36);
+        rageGrad.addColorStop(0, 'rgba(239, 68, 68, 0.65)');
+        rageGrad.addColorStop(0.6, 'rgba(220, 38, 38, 0.3)');
+        rageGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+        ctx.fillStyle = rageGrad;
+        ctx.beginPath();
+        ctx.arc(0, breathY, 36 + Math.sin(time * 8) * 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Hit Flash Overlay
+      const isHitFlashing = beast.hitFlash && beast.hitFlash > 0;
+
+      // ==========================================
+      // HIGH-FIDELITY PROCEDURAL BEAST RENDERING
+      // ==========================================
+      ctx.save();
+      if (isHitFlashing) {
+        ctx.filter = 'brightness(2.2) drop-shadow(0 0 8px white)';
+      }
+
+      // 1. NIGHT STALKER (Dạ Ma Khát Máu - Dark Void Assassin)
       if (beast.type === 'night_stalker') {
-        size = 30;
-        // Dark Shadow Tentacles / Void Aura
-        const tentacleGlow = ctx.createRadialGradient(0, breathY, 6, 0, breathY, 24);
-        tentacleGlow.addColorStop(0, 'rgba(88, 28, 135, 0.85)');
-        tentacleGlow.addColorStop(0.7, 'rgba(30, 27, 75, 0.5)');
-        tentacleGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = tentacleGlow;
+        size = 34;
+        // Swirling Dark Matter Void Aura
+        const voidGrad = ctx.createRadialGradient(0, breathY, 8, 0, breathY, 28);
+        voidGrad.addColorStop(0, 'rgba(126, 34, 206, 0.9)');
+        voidGrad.addColorStop(0.6, 'rgba(59, 7, 100, 0.6)');
+        voidGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = voidGrad;
+        ctx.beginPath();
+        ctx.arc(0, breathY, 28, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Animated Shadow Scythe Tentacles
+        ctx.strokeStyle = '#9333ea';
+        ctx.lineWidth = 3;
+        for (let i = -1; i <= 1; i += 2) {
+          const tentacleAngle = time * 4 + i;
+          ctx.beginPath();
+          ctx.moveTo(i * 12, breathY);
+          ctx.quadraticCurveTo(i * 26 + Math.sin(tentacleAngle) * 6, breathY - 14, i * 20, breathY + 14);
+          ctx.stroke();
+        }
+
+        // Obsidian Torso Core
+        ctx.fillStyle = '#09090b';
+        ctx.beginPath();
+        ctx.ellipse(0, breathY, 14, 18, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#c084fc';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 4 Piercing Demon Crimson Eyes
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(-7, breathY - 6, 3, 3);
+        ctx.fillRect(4, breathY - 6, 3, 3);
+        ctx.fillRect(-4, breathY - 1, 3, 3);
+        ctx.fillRect(1, breathY - 1, 3, 3);
+      }
+
+      // 2. DESERT SCORPION & GOLDEN SCORPION (Articulated Chitin & Toxic Tail)
+      else if (beast.type === 'desert_scorpion' || beast.type === 'golden_scorpion') {
+        const isGold = beast.type === 'golden_scorpion';
+        size = isGold ? 42 : 28;
+
+        // Animated Walking Legs
+        ctx.strokeStyle = isGold ? '#d97706' : '#78350f';
+        ctx.lineWidth = 2;
+        for (let leg = -2; leg <= 2; leg++) {
+          const legPhase = walkCycle * 4 + leg;
+          // Left leg
+          ctx.beginPath();
+          ctx.moveTo(-10, breathY + leg * 5);
+          ctx.lineTo(-20 + Math.sin(legPhase) * 4, breathY + leg * 5 + 6);
+          ctx.stroke();
+          // Right leg
+          ctx.beginPath();
+          ctx.moveTo(10, breathY + leg * 5);
+          ctx.lineTo(20 + Math.cos(legPhase) * 4, breathY + leg * 5 + 6);
+          ctx.stroke();
+        }
+
+        // Segmented Chitin Carapace Plates
+        for (let seg = 0; seg < 4; seg++) {
+          const segWidth = (18 - seg * 3) * (isGold ? 1.3 : 1.0);
+          const segY = breathY - 6 + seg * 6;
+          ctx.fillStyle = isGold ? (seg % 2 === 0 ? '#fbbf24' : '#d97706') : (seg % 2 === 0 ? '#92400e' : '#78350f');
+          ctx.fillRect(-segWidth / 2, segY, segWidth, 5);
+          ctx.strokeStyle = isGold ? '#fef08a' : '#451a03';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(-segWidth / 2, segY, segWidth, 5);
+        }
+
+        // Dual Pincer Claws with Spikes
+        const pincerGrip = Math.sin(time * 5) * 3;
+        ctx.fillStyle = isGold ? '#f59e0b' : '#b45309';
+        // Left Pincer
+        ctx.fillRect(-18, breathY - 18, 8, 10);
+        ctx.fillRect(-22, breathY - 24 + pincerGrip, 5, 8);
+        ctx.fillRect(-15, breathY - 24 - pincerGrip, 5, 8);
+        // Right Pincer
+        ctx.fillRect(10, breathY - 18, 8, 10);
+        ctx.fillRect(10, breathY - 24 + pincerGrip, 5, 8);
+        ctx.fillRect(17, breathY - 24 - pincerGrip, 5, 8);
+
+        // Arched Tail & Toxic Bulb
+        ctx.strokeStyle = isGold ? '#b45309' : '#451a03';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(0, breathY + 14);
+        ctx.quadraticCurveTo(18, breathY + 22, 14, breathY - 18);
+        ctx.stroke();
+
+        // Pulsating Venom Stinger Bulb
+        const venomGlow = Math.sin(time * 6) * 0.3 + 0.7;
+        ctx.fillStyle = isGold ? `rgba(250, 204, 21, ${venomGlow})` : `rgba(34, 197, 94, ${venomGlow})`;
+        ctx.beginPath();
+        ctx.arc(14, breathY - 18, isGold ? 7 : 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = isGold ? '#ffffff' : '#4ade80';
+        ctx.fillRect(16, breathY - 22, 3, 5);
+      }
+
+      // 3. SAND WYRM & SAND BEHEMOTH (Colossal Sand Leviathan & Magma Maw)
+      else if (beast.type === 'sand_wyrm' || beast.type === 'sand_behemoth') {
+        const isBoss = beast.type === 'sand_behemoth';
+        size = isBoss ? 52 : 38;
+
+        // Sand Dust Whirlpool underneath
+        ctx.fillStyle = 'rgba(217, 119, 6, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(0, breathY, size * 0.9, size * 0.55, time * 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Segmented Serpentine Body
+        for (let i = 4; i >= 0; i--) {
+          const segOffset = Math.sin(time * 5 + i * 0.8) * 8;
+          const segRadius = (size * 0.6) - i * 3;
+          ctx.fillStyle = isBoss ? (i % 2 === 0 ? '#b91c1c' : '#7f1d1d') : (i % 2 === 0 ? '#b45309' : '#78350f');
+          ctx.beginPath();
+          ctx.ellipse(segOffset, breathY + i * 9, segRadius, segRadius * 0.7, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = isBoss ? '#f87171' : '#f59e0b';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        // Giant Primary Head & Serrated Maw
+        ctx.fillStyle = isBoss ? '#991b1b' : '#92400e';
+        ctx.beginPath();
+        ctx.ellipse(0, breathY - 6, size * 0.65, size * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Gaping Maw with Magma Core
+        const mawGlow = ctx.createRadialGradient(0, breathY - 6, 2, 0, breathY - 6, 12);
+        mawGlow.addColorStop(0, isBoss ? '#fef08a' : '#fde047');
+        mawGlow.addColorStop(0.7, isBoss ? '#ef4444' : '#d97706');
+        mawGlow.addColorStop(1, '#000000');
+        ctx.fillStyle = mawGlow;
+        ctx.beginPath();
+        ctx.ellipse(0, breathY - 6, 12, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sharp Razor White Teeth Rings
+        ctx.fillStyle = '#ffffff';
+        for (let t = 0; t < 6; t++) {
+          const angle = (t / 6) * Math.PI * 2;
+          const tx = Math.cos(angle) * 11;
+          const ty = Math.sin(angle) * 7;
+          ctx.fillRect(tx - 1, breathY - 6 + ty - 1, 2.5, 2.5);
+        }
+      }
+
+      // 4. MECHA CHIMERA (Cybernetic Augmented Apex Boss)
+      else if (beast.type === 'mecha_chimera') {
+        size = 46;
+        // Titanium Angular Chassis Armor
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(-22, breathY - 14, 44, 28);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(-18, breathY - 10, 36, 20);
+
+        // Neon Cyber Circuitry Paths (Cyan & Orange)
+        ctx.strokeStyle = '#00f2ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-16, breathY - 8);
+        ctx.lineTo(-4, breathY);
+        ctx.lineTo(-14, breathY + 8);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#f97316';
+        ctx.beginPath();
+        ctx.moveTo(16, breathY - 8);
+        ctx.lineTo(4, breathY);
+        ctx.lineTo(14, breathY + 8);
+        ctx.stroke();
+
+        // Dual Shoulder Plasma Cannons
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-26, breathY - 20, 10, 16);
+        ctx.fillRect(16, breathY - 20, 10, 16);
+        ctx.fillStyle = '#00f2ff';
+        ctx.fillRect(-24, breathY - 24, 6, 6);
+        ctx.fillRect(18, breathY - 24, 6, 6);
+
+        // Laser Aiming Beam
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(0, breathY - 14);
+        ctx.lineTo(0, breathY - 90);
+        ctx.stroke();
+
+        // Optical Laser Eye Visor
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(-8, breathY - 12, 16, 4);
+      }
+
+      // 5. MUTANT VULTURE & TWIN-HEAD DEATH VULTURE
+      else if (beast.type === 'mutant_vulture' || beast.type === 'twin_vulture') {
+        const isTwin = beast.type === 'twin_vulture';
+        size = isTwin ? 44 : 30;
+
+        // Animated Flapping Wings
+        const wingFlap = Math.sin(time * 8) * 16;
+        ctx.fillStyle = isTwin ? '#450a0a' : '#27272a';
+        ctx.beginPath();
+        ctx.moveTo(0, breathY);
+        ctx.lineTo(-30, breathY - 10 + wingFlap);
+        ctx.lineTo(-18, breathY + 12);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(0, breathY);
+        ctx.lineTo(30, breathY - 10 + wingFlap);
+        ctx.lineTo(18, breathY + 12);
+        ctx.closePath();
+        ctx.fill();
+
+        // Skeletal Feathered Body
+        ctx.fillStyle = isTwin ? '#7f1d1d' : '#3f3f46';
+        ctx.fillRect(-10, breathY - 12, 20, 24);
+
+        // Heads & Beaks
+        if (isTwin) {
+          // Left Head
+          ctx.fillStyle = '#991b1b';
+          ctx.fillRect(-14, breathY - 20, 9, 10);
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillRect(-18, breathY - 18, 5, 4);
+          // Right Head
+          ctx.fillStyle = '#991b1b';
+          ctx.fillRect(5, breathY - 20, 9, 10);
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillRect(13, breathY - 18, 5, 4);
+        } else {
+          ctx.fillStyle = '#52525b';
+          ctx.fillRect(-5, breathY - 18, 10, 10);
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillRect(-2, breathY - 22, 4, 6);
+        }
+      }
+
+      // 6. INFERNAL HOUND, WOLF & DESERT HYENA
+      else if (beast.type === 'infernal_hound' || beast.type === 'wolf' || beast.type === 'desert_hyena') {
+        const isFire = beast.type === 'infernal_hound';
+        size = 28;
+
+        // Muscular Quadruped Body
+        ctx.fillStyle = isFire ? '#7f1d1d' : beast.type === 'desert_hyena' ? '#78716c' : '#475569';
+        ctx.fillRect(-10, breathY - 8, 20, 18);
+
+        // Fiery Mane / Spines
+        if (isFire) {
+          ctx.fillStyle = '#f97316';
+          for (let m = -3; m <= 3; m++) {
+            ctx.fillRect(m * 3, breathY - 14 + Math.sin(time * 8 + m) * 3, 2.5, 7);
+          }
+        }
+
+        // Snout & Fangs
+        ctx.fillStyle = isFire ? '#991b1b' : '#334155';
+        ctx.fillRect(-7, breathY - 15, 14, 8);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-5, breathY - 8, 2.5, 3);
+        ctx.fillRect(2.5, breathY - 8, 2.5, 3);
+
+        // Animated Paws
+        ctx.fillStyle = isFire ? '#450a0a' : '#1e293b';
+        ctx.fillRect(-12 + Math.sin(walkCycle * 4) * 3, breathY + 8, 5, 7);
+        ctx.fillRect(7 - Math.sin(walkCycle * 4) * 3, breathY + 8, 5, 7);
+      }
+
+      // 7. FROST SPECTER & EVIL SPIRIT (Ethereal Hovering Apparitions)
+      else if (beast.type === 'frost_specter' || beast.type === 'evil_spirit') {
+        const isFrost = beast.type === 'frost_specter';
+        size = 32;
+
+        // Ethereal Mist Aura
+        const mistGrad = ctx.createRadialGradient(0, breathY, 4, 0, breathY, 24);
+        mistGrad.addColorStop(0, isFrost ? 'rgba(103, 232, 249, 0.85)' : 'rgba(192, 132, 252, 0.85)');
+        mistGrad.addColorStop(0.7, isFrost ? 'rgba(14, 116, 144, 0.4)' : 'rgba(107, 33, 168, 0.4)');
+        mistGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = mistGrad;
         ctx.beginPath();
         ctx.arc(0, breathY, 24, 0, Math.PI * 2);
         ctx.fill();
 
-        // Dark Void Body
-        ctx.fillStyle = '#0f172a';
+        // Spectral Cloak with Flowing Wisps
+        ctx.fillStyle = isFrost ? '#0891b2' : '#6b21a8';
         ctx.beginPath();
-        ctx.arc(0, breathY, 15, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Razor Crimson Claws
-        ctx.fillStyle = '#dc2626';
-        ctx.fillRect(-18, breathY + 4, 8, 4);
-        ctx.fillRect(10, breathY + 4, 8, 4);
-
-        // Hyper-Piercing Crimson Demon Eyes
-        ctx.fillStyle = '#ef4444';
-        ctx.fillRect(-6, breathY - 4, 4, 4);
-        ctx.fillRect(2, breathY - 4, 4, 4);
-      } else if (beast.type === 'desert_scorpion') {
-        size = 24;
-        // Segmented Chitin Armor Plates
-        ctx.fillStyle = '#78350f';
-        ctx.fillRect(-12, breathY - 7, 24, 14);
-        ctx.fillStyle = '#92400e';
-        ctx.fillRect(-10, breathY - 5, 20, 10);
-
-        // Spiked Dual Pincers
-        ctx.fillStyle = '#b45309';
-        ctx.fillRect(10, breathY - 12, 10, 6);
-        ctx.fillRect(10, breathY + 6, 10, 6);
-
-        // Curved Tail with Dripping Toxic Green Venom
-        ctx.fillStyle = '#451a03';
-        ctx.fillRect(-18, breathY - 16, 7, 14);
-        ctx.fillStyle = '#22c55e';
-        ctx.beginPath();
-        ctx.arc(-19, breathY - 18, 4, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (beast.type === 'sand_wyrm') {
-        size = 38;
-        // Giant Segmented Earth Wyrm
-        ctx.fillStyle = '#92400e';
-        ctx.beginPath();
-        ctx.ellipse(0, breathY, 20, 14, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#d97706';
-        ctx.fillRect(-10, breathY - 8, 20, 16);
-
-        // Jagged Maw & Serrated Teeth
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(16, breathY - 6, 6, 3);
-        ctx.fillRect(16, breathY + 3, 6, 3);
-      } else if (beast.type === 'armored_rhino') {
-        size = 36;
-        ctx.fillStyle = '#475569';
-        ctx.fillRect(-18, breathY - 12, 36, 24);
-        // Heavy Chrome Alloy Horn
-        ctx.fillStyle = '#e2e8f0';
-        ctx.beginPath();
-        ctx.moveTo(18, breathY - 8);
-        ctx.lineTo(30, breathY - 2);
-        ctx.lineTo(18, breathY + 4);
+        ctx.moveTo(-12, breathY - 14);
+        ctx.quadraticCurveTo(0, breathY - 20, 12, breathY - 14);
+        ctx.lineTo(16 + Math.sin(time * 4) * 4, breathY + 16);
+        ctx.lineTo(0, breathY + 10);
+        ctx.lineTo(-16 - Math.sin(time * 4) * 4, breathY + 16);
         ctx.closePath();
         ctx.fill();
-      } else if (beast.type === 'bandit') {
-        size = 24;
-        // Cyber Raider Trenchcoat
-        ctx.fillStyle = '#0f766e';
-        ctx.fillRect(-9, breathY - 11, 18, 22);
-        // Illuminated Visor Goggles
-        ctx.fillStyle = '#ef4444';
-        ctx.fillRect(2, breathY - 8, 8, 4);
-        // Tactical Rifle & Aiming Laser Beam
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(7, breathY, 14, 5);
-        ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
-        ctx.lineWidth = 1;
+
+        // Spectral Eyes / Core
+        ctx.fillStyle = isFrost ? '#e0f2fe' : '#f3e8ff';
+        ctx.fillRect(-6, breathY - 8, 3, 5);
+        ctx.fillRect(3, breathY - 8, 3, 5);
+      }
+
+      // 8. TIGER, LION, LEOPARD & BEAR
+      else if (beast.type === 'tiger' || beast.type === 'lion' || beast.type === 'leopard' || beast.type === 'bear') {
+        size = beast.type === 'bear' ? 36 : 30;
+
+        // Heavy Predator Body
+        ctx.fillStyle = beast.type === 'tiger' ? '#ea580c' : beast.type === 'lion' ? '#ca8a04' : beast.type === 'bear' ? '#451a03' : '#eab308';
+        ctx.fillRect(-12, breathY - 10, 24, 20);
+
+        // Distinctive Coat Markings
+        if (beast.type === 'tiger') {
+          ctx.fillStyle = '#09090b';
+          ctx.fillRect(-10, breathY - 7, 5, 2);
+          ctx.fillRect(5, breathY - 7, 5, 2);
+          ctx.fillRect(-10, breathY + 2, 5, 2);
+          ctx.fillRect(5, breathY + 2, 5, 2);
+        } else if (beast.type === 'lion') {
+          // Glorious Lion Mane
+          ctx.fillStyle = '#78350f';
+          ctx.beginPath();
+          ctx.arc(0, breathY - 10, 14, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Head
+        ctx.fillStyle = beast.type === 'tiger' ? '#ea580c' : beast.type === 'bear' ? '#58240c' : '#ca8a04';
         ctx.beginPath();
-        ctx.moveTo(21, breathY + 2);
-        ctx.lineTo(80, breathY + 2);
-        ctx.stroke();
-      } else {
-        // General Predators (Hyena, Lion, Bear, Wolf, etc.)
-        size = 24;
-        ctx.fillStyle = beast.type === 'lion' ? '#b45309' : beast.type === 'bear' ? '#3e1f0e' : '#64748b';
-        ctx.beginPath();
-        ctx.arc(0, breathY, 13, 0, Math.PI * 2);
+        ctx.arc(0, breathY - 10, 9, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Glowing Eyes
-      ctx.fillStyle = beast.isPacified ? '#ec4899' : (this.isNight ? '#ef4444' : '#fef08a');
-      ctx.fillRect(4, breathY - 3, 3.5, 3.5);
+      // 9. ARMORED RHINO & BUFFALO
+      else if (beast.type === 'armored_rhino' || beast.type === 'buffalo') {
+        size = 38;
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(-18, breathY - 12, 36, 24);
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(-14, breathY - 9, 28, 18);
+
+        // Horn / Battering Ram
+        ctx.fillStyle = '#f1f5f9';
+        ctx.beginPath();
+        ctx.moveTo(16, breathY - 9);
+        ctx.lineTo(30, breathY - 2);
+        ctx.lineTo(16, breathY + 5);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 10. BANDIT (Cyber Raider)
+      else if (beast.type === 'bandit') {
+        size = 26;
+        ctx.fillStyle = '#0f766e';
+        ctx.fillRect(-9, breathY - 11, 18, 22);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(2, breathY - 8, 8, 4);
+
+        // Tactical Rifle & Aiming Laser Beam
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(7, breathY, 14, 5);
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(21, breathY + 2);
+        ctx.lineTo(85, breathY + 2);
+        ctx.stroke();
+      }
+
+      // 11. SNAKE, CAT, MOUSE (Small Wildlife)
+      else {
+        size = 20;
+        if (beast.type === 'snake') {
+          ctx.strokeStyle = '#15803d';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.moveTo(-14, breathY + Math.sin(time * 6) * 4);
+          ctx.quadraticCurveTo(0, breathY - 8, 14, breathY + Math.cos(time * 6) * 4);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = beast.type === 'cat' ? '#ca8a04' : '#71717a';
+          ctx.beginPath();
+          ctx.arc(0, breathY, 10, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Glowing Predator Eyes
+      ctx.fillStyle = beast.isPacified ? '#ec4899' : (beast.isEnraged ? '#ef4444' : this.isNight ? '#f87171' : '#fef08a');
+      ctx.fillRect(4, breathY - 4, 3.5, 3.5);
       ctx.fillRect(4, breathY + 2, 3.5, 3.5);
 
-      // Sleek RPG Health Gauge with Shield Outline
-      const hpPct = Math.max(0, beast.hp / beast.maxHp);
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(-20, -size / 2 - 14, 40, 6);
-      ctx.fillStyle = hpPct > 0.5 ? '#22c55e' : hpPct > 0.25 ? '#eab308' : '#ef4444';
-      ctx.fillRect(-20, -size / 2 - 14, 40 * hpPct, 6);
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(-20, -size / 2 - 14, 40, 6);
+      ctx.restore(); // End hit flash / model rendering
 
-      // Beast Name Tag
-      ctx.fillStyle = this.isNight && beast.isNightPredator ? '#f87171' : '#ffffff';
+      // ==========================================
+      // SCI-FI HOLOGRAM HEALTH BAR & STATUS TAGS
+      // ==========================================
+      const hpPct = Math.max(0, beast.hp / beast.maxHp);
+      const barWidth = beast.isBoss ? 56 : 42;
+      const barY = -size / 2 - 14;
+
+      // Bar Background
+      ctx.fillStyle = '#09090b';
+      ctx.fillRect(-barWidth / 2, barY, barWidth, 6);
+
+      // HP Bar Fill with Enraged / Boss styling
+      const hpGrad = ctx.createLinearGradient(-barWidth / 2, 0, barWidth / 2, 0);
+      if (beast.isEnraged) {
+        hpGrad.addColorStop(0, '#ef4444');
+        hpGrad.addColorStop(1, '#f97316');
+      } else if (hpPct > 0.5) {
+        hpGrad.addColorStop(0, '#10b981');
+        hpGrad.addColorStop(1, '#34d399');
+      } else if (hpPct > 0.25) {
+        hpGrad.addColorStop(0, '#f59e0b');
+        hpGrad.addColorStop(1, '#fbbf24');
+      } else {
+        hpGrad.addColorStop(0, '#dc2626');
+        hpGrad.addColorStop(1, '#ef4444');
+      }
+      ctx.fillStyle = hpGrad;
+      ctx.fillRect(-barWidth / 2, barY, barWidth * hpPct, 6);
+
+      // Bar Outline Frame
+      ctx.strokeStyle = beast.isBoss ? '#fbbf24' : '#475569';
+      ctx.lineWidth = beast.isBoss ? 1.5 : 1;
+      ctx.strokeRect(-barWidth / 2, barY, barWidth, 6);
+
+      // Element & Name Tag
       ctx.font = 'bold 9px monospace';
       ctx.textAlign = 'center';
-      const nameLabel = beast.isPacified ? `💖 [THÂN THIỆN] ${beast.name}` : beast.name;
-      ctx.fillText(nameLabel, 0, -size / 2 - 18);
+      
+      let elementIcon = '⚔️';
+      if (beast.element === 'poison') elementIcon = '🧪';
+      else if (beast.element === 'fire') elementIcon = '🔥';
+      else if (beast.element === 'dark') elementIcon = '🌑';
+      else if (beast.element === 'cyber') elementIcon = '⚡';
+      else if (beast.element === 'frost') elementIcon = '❄️';
+
+      let title = `${elementIcon} ${beast.name}`;
+      if (beast.isEnraged) title = `🔥 [CUỒNG NỘ] ${beast.name}`;
+      if (beast.isPacified) title = `💖 [THÂN THIỆN] ${beast.name}`;
+
+      ctx.fillStyle = beast.isBoss ? '#fde047' : beast.isEnraged ? '#f87171' : '#ffffff';
+      ctx.shadowColor = beast.isBoss ? '#eab308' : '#000000';
+      ctx.shadowBlur = beast.isBoss ? 6 : 3;
+      ctx.fillText(title, 0, barY - 4);
+      ctx.shadowBlur = 0;
 
       ctx.restore();
     }
